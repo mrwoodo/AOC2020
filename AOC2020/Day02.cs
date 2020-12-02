@@ -44,6 +44,13 @@ namespace AOC2020
         public char Letter { get; set; }
         public string UserPassword { get; set; }
         public abstract bool IsValid { get; }
+
+        public Password(string line)
+        {
+            var split = line.Split(" ");
+            Letter = split[1][0];
+            UserPassword = split[2];
+        }
     }
 
     public class PasswordVer1 : Password
@@ -51,14 +58,12 @@ namespace AOC2020
         public int Min { get; }
         public int Max { get; }
 
-        public PasswordVer1(string line)
+        public PasswordVer1(string line) : base(line)
         {
             var split = line.Split(" ");
             var minmax = split[0].Split("-");
             Min = int.Parse(minmax[0]);
             Max = int.Parse(minmax[1]);
-            Letter = split[1][0];
-            UserPassword = split[2];
         }
 
         public override bool IsValid
@@ -77,14 +82,12 @@ namespace AOC2020
         public int Char1 { get; }
         public int Char2 { get; }
 
-        public PasswordVer2(string line)
+        public PasswordVer2(string line) : base(line)
         {
             var split = line.Split(" ");
             var minmax = split[0].Split("-");
             Char1 = int.Parse(minmax[0]);
             Char2 = int.Parse(minmax[1]);
-            Letter = split[1][0];
-            UserPassword = split[2];
         }
 
         public override bool IsValid

@@ -2,7 +2,7 @@
 
 namespace AOC2020
 {
-    public class DayBase
+    public class DayBase 
     {
         public DayBase()
         {

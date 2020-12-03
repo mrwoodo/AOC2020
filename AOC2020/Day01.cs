@@ -12,7 +12,7 @@ namespace AOC2020
 
         public Day01()
         {
-            expenses = (from line in File.ReadAllLines("Day01.txt")
+            expenses = (from line in File.ReadAllLines("Input\\Day01.txt")
                         select int.Parse(line)).ToList();
 
             Console.WriteLine(Part1());

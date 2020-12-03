@@ -20,44 +20,44 @@ namespace AOC2020
 
         public string Part1()
         {
-            var world = new World(Lines);
-            var sled = new Sled(world, 3, 1);
-            var treesHit = sled.Slide();
+            var map = new Map(Lines);
+            var sled = new Sled(map, 3, 1);
+            var treesHit = sled.SlideDownMap();
 
             return treesHit.ToString();
         }
 
         public string Part2()
         {
-            var world = new World(Lines);
+            var map = new Map(Lines);
             var sleds = new Sled[5] { 
-                new Sled(world, 1, 1),
-                new Sled(world, 3, 1),
-                new Sled(world, 5, 1),
-                new Sled(world, 7, 1),
-                new Sled(world, 1, 2) 
+                new Sled(map, 1, 1),
+                new Sled(map, 3, 1),
+                new Sled(map, 5, 1),
+                new Sled(map, 7, 1),
+                new Sled(map, 1, 2) 
             };
 
             long result = 1;
             foreach (var sled in sleds)
-                 result *= sled.Slide();
+                 result *= sled.SlideDownMap();
 
             return result.ToString();
         }
 
-        public class World
+        public class Map
         {
-            public int[,] Map { get; set; }
-            public int Width => Map.GetLength(0);
-            public int Height => Map.GetLength(1);
+            public int[,] Coords { get; set; }
+            public int Width => Coords.GetLength(0);
+            public int Height => Coords.GetLength(1);
 
-            public World(List<string> lines)
+            public Map(List<string> lines)
             {
-                Map = new int[lines[0].Length, lines.Count];
+                Coords = new int[lines[0].Length, lines.Count];
 
                 for (int x = 0; x < lines[0].Length; x++)
                     for (int y = 0; y < lines.Count; y++)
-                        Map[x, y] = lines[y][x] == '#' ? 1 : 0;
+                        Coords[x, y] = lines[y][x] == '#' ? 1 : 0;
             }
         }
 
@@ -67,12 +67,12 @@ namespace AOC2020
             public int y = 0;
             private readonly int right = 0;
             private readonly int down = 0;
-            private readonly World world;
-            private bool OnTheMap => y < world.Height;
+            private readonly Map map;
+            private bool OnTheMap => y < map.Height;
 
-            public Sled(World w, int Right, int Down)
+            public Sled(Map m, int Right, int Down)
             {
-                world = w;
+                map = m;
                 right = Right;
                 down = Down;
             }
@@ -82,16 +82,16 @@ namespace AOC2020
                 x += right;
                 y += down;
 
-                if (x >= world.Width) 
-                    x -= world.Width;
+                if (x >= map.Width) 
+                    x -= map.Width;
 
                 if (OnTheMap)
-                    return world.Map[x, y];
+                    return map.Coords[x, y];
 
                 return 0;
             }
 
-            public int Slide()
+            public int SlideDownMap()
             {
                 var treesHit = 0;
 

@@ -17,15 +17,11 @@ namespace AOC2020
             foreach (var line in Lines)
             {
                 var doc = new Document();
-                var attrs = line.Replace("\r\n", " ").Split(" ");
 
-                foreach (var attr in attrs)
+                foreach (var attr in line.Replace("\r\n", " ").Split(" "))
                 {
                     var pos = attr.IndexOf(":");
-                    var key = attr.Substring(0, pos);
-                    var val = attr[(pos + 1)..];
-
-                    doc.AddAttribute(key, val);
+                    doc.AddAttribute(attr.Substring(0, pos), attr[(pos + 1)..]);
                 }
 
                 docs.Add(doc);
@@ -145,25 +141,8 @@ namespace AOC2020
             this.GetType().GetProperty(attr).SetValue(this, val, null);
         }
 
-        public bool IsValidVer1
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(byr) ||
-                    string.IsNullOrEmpty(iyr) ||
-                    string.IsNullOrEmpty(eyr) ||
-                    string.IsNullOrEmpty(hgt) ||
-                    string.IsNullOrEmpty(hcl) ||
-                    string.IsNullOrEmpty(ecl) ||
-                    string.IsNullOrEmpty(pid))
-                    return false;
-
-                return true;
-            }
-        }
-
-        public bool IsValidVer2 => IsValidVer1 && byrValid && eclValid && eyrValid && hclValid &&
-                                    hgtValid && iyrValid && pidValid;
+        public bool IsValidVer1 => ValidateNonEmpty(new string[] { byr, iyr, eyr, hgt, hcl, ecl, pid });
+        public bool IsValidVer2 => IsValidVer1 && byrValid && eclValid && eyrValid && hclValid && hgtValid && iyrValid && pidValid;
 
         private bool ValidateNum(string s, int min, int max)
         {
@@ -179,11 +158,12 @@ namespace AOC2020
                 if (s.Length != expectedLength.Value)
                     return false;
 
-            foreach (var c in s)
-                if (!allowedChars.Contains(c))
-                    return false;
+            return !s.Any(c => !allowedChars.Contains(c));
+        }
 
-            return true;
+        private bool ValidateNonEmpty(params string[] vals)
+        {
+            return !vals.Any(v => string.IsNullOrEmpty(v));
         }
     }
 }

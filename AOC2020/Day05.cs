@@ -31,13 +31,16 @@ namespace AOC2020
 
         public string Part2()
         {
-            var sorted = SeatIDs.OrderBy(x => x).ToList();
+            SeatIDs.Sort();
+            var check = new Dictionary<int, bool>();
+            
+            foreach (var seat in Enumerable.Range(SeatIDs[0], SeatIDs[^1]))
+                check.Add(seat, false);
 
-            for (int i = 0; i < sorted.Count; i++)
-                if ((sorted[i] + 1) != sorted[i + 1])
-                    return (sorted[i] + 1).ToString();
+            foreach (var filledSeat in SeatIDs)
+                check[filledSeat] = true;
 
-            return String.Empty;
+            return check.Where(i => !i.Value).FirstOrDefault().Key.ToString();
         }
 
         private int GetSeatID(string rowPartition, string seatPartition)
@@ -51,7 +54,7 @@ namespace AOC2020
         private int GetNumberFromPartition(string partition, char low)
         {
             int min = 0;
-            int max = Convert.ToInt32(Math.Pow((double)2, (double)partition.Length) - 1);
+            int max = Convert.ToInt32(Math.Pow(2.0, (double)partition.Length) - 1);
 
             foreach (var c in partition)
             {

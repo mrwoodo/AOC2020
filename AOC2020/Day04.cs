@@ -33,12 +33,12 @@ namespace AOC2020
 
         public string Part1()
         {
-            return docs.Count(i => i.IsValidVer1).ToString();
+            return $"Valid passports (Part 1) : {docs.Count(i => i.IsValidVer1)}";
         }
 
         public string Part2()
         {
-            return docs.Count(i => i.IsValidVer2).ToString();
+            return $"Valid passports (Part 2) : {docs.Count(i => i.IsValidVer2)}";
         }
     }
 

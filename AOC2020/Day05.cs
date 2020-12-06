@@ -7,12 +7,12 @@ namespace AOC2020
 {
     public class Day05 : DayBase, ITwoPartQuestion
     {
-        public List<string> Lines = new List<string>();
-        public List<int> SeatIDs = new List<int>();
+        public List<string> Input = new List<string>();
+        public SortedSet<int> Tickets = new SortedSet<int>();
 
         public Day05()
         {
-            Lines = (from line in File.ReadAllLines("Input\\Day05.txt")
+            Input = (from line in File.ReadAllLines("Input\\Day05.txt")
                      select line).ToList();
 
             Console.WriteLine(Part1());
@@ -21,26 +21,28 @@ namespace AOC2020
 
         public string Part1()
         {
-            foreach (var ticket in Lines)
-                SeatIDs.Add(GetSeatID(
-                    rowPartition: ticket.Substring(0, 7), 
+            foreach (var ticket in Input)
+                Tickets.Add(GetSeatID(
+                    rowPartition: ticket.Substring(0, 7),
                     seatPartition: ticket[7..]));
 
-            return SeatIDs.Max().ToString();
+            return $"Highest ticket number : {Tickets.Max()}";
         }
 
         public string Part2()
         {
-            SeatIDs.Sort();
             var check = new Dictionary<int, bool>();
-            
-            foreach (var seat in Enumerable.Range(SeatIDs[0], SeatIDs[^1]))
+
+            //Whole range of tickets sold
+            foreach (var seat in Enumerable.Range(Tickets.First(), Tickets.LastOrDefault()))
                 check.Add(seat, false);
 
-            foreach (var filledSeat in SeatIDs)
-                check[filledSeat] = true;
+            //Tickets checked in
+            foreach (var t in Tickets)
+                check[t] = true;
 
-            return check.Where(i => !i.Value).FirstOrDefault().Key.ToString();
+            //Our ticket that wasn't checked in
+            return $"Our ticket : {check.Where(i => !i.Value).ElementAt(0).Key}";
         }
 
         private int GetSeatID(string rowPartition, string seatPartition)

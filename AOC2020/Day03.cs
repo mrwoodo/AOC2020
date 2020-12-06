@@ -24,25 +24,25 @@ namespace AOC2020
             var sled = new Sled(map, 3, 1);
             var treesHit = sled.SlideDownMap();
 
-            return treesHit.ToString();
+            return $"Trees hit : {treesHit}";
         }
 
         public string Part2()
         {
             var map = new Map(Lines);
-            var sleds = new Sled[5] { 
+            var sleds = new Sled[5] {
                 new Sled(map, 1, 1),
                 new Sled(map, 3, 1),
                 new Sled(map, 5, 1),
                 new Sled(map, 7, 1),
-                new Sled(map, 1, 2) 
+                new Sled(map, 1, 2)
             };
 
             long result = 1;
             foreach (var sled in sleds)
                  result *= sled.SlideDownMap();
 
-            return result.ToString();
+            return $"Combination of Trees hit : {result}";
         }
 
         public class Map
@@ -82,7 +82,7 @@ namespace AOC2020
                 x += right;
                 y += down;
 
-                if (x >= map.Width) 
+                if (x >= map.Width)
                     x -= map.Width;
 
                 if (OnTheMap)

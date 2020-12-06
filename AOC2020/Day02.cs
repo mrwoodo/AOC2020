@@ -25,7 +25,7 @@ namespace AOC2020
             foreach (var line in Lines)
                 passwords.Add(new PasswordVer1(line));
 
-            return passwords.Where(i => i.IsValid).Count().ToString();
+            return $"Valid passwords (Part 1) : {passwords.Where(i => i.IsValid).Count()}";
         }
 
         public string Part2()
@@ -35,7 +35,7 @@ namespace AOC2020
             foreach (var line in Lines)
                passwords.Add(new PasswordVer2(line));
 
-            return passwords.Where(i => i.IsValid).Count().ToString();
+            return $"Valid passwords (Part 2) : {passwords.Where(i => i.IsValid).Count()}";
         }
     }
 

@@ -8,7 +8,7 @@ namespace AOC2020
     public class Day08 : DayBase, ITwoPartQuestion
     {
         private readonly List<string> Disk;
-        private string[] Memory;
+        private string[] MemoryStore;
         private HashSet<int> LineVisited;
         private int Curr;
         private int Acc;
@@ -24,68 +24,51 @@ namespace AOC2020
 
         public string Part1()
         {
-            try
-            {
-                Memory = new string[Disk.Count];
-                Disk.CopyTo(Memory);
-                RunProgram();
-            }
-            catch (InfiniteLoopException ex)
-            {
-                return ex.Message;
-            }
+            MemoryStore = new string[Disk.Count];
+            Disk.CopyTo(MemoryStore);
+            RunProgram();
 
-            return "Failed";
+            return $"Part 1 Acc : {Acc}";
         }
 
         public string Part2()
         {
-            try
+            //working backwards, assuming the corrupt code was closer to the end of the block
+            for (int i = Disk.Count - 1; i >= 0; i--)
             {
-                for (int i = 0; i < Disk.Count; i++)
-                {
-                    Disk.CopyTo(Memory);
-                    var somethingChanged = false;
+                Disk.CopyTo(MemoryStore);
+                var somethingChanged = true;
 
-                    if (Memory[i].StartsWith("j"))
-                    {
-                        Memory[i] = Memory[i].Replace("jmp", "nop");
-                        somethingChanged = true;
-                    }
-                    else if (Memory[i].StartsWith("n"))
-                    {
-                        Memory[i] = Memory[i].Replace("nop", "jmp");
-                        somethingChanged = true;
-                    }
+                if (MemoryStore[i].StartsWith("j"))
+                    MemoryStore[i] = MemoryStore[i].Replace("jmp", "nop");
+                else if (MemoryStore[i].StartsWith("n"))
+                    MemoryStore[i] = MemoryStore[i].Replace("nop", "jmp");
+                else
+                    somethingChanged = false;
 
-                    if (somethingChanged)
-                    {
-                        try
-                        {
-                            RunProgram();
-                        }
-                        catch (InfiniteLoopException)
-                        {
-                            //Ignore these attempts at running
-                        }
-                    }
-                }
-            }
-            catch (OutOfProgramException ex)
-            {
-                return ex.Message;
+                if (somethingChanged)
+                    if (RunProgram())
+                        return $"Part 2 Acc : {Acc}";
             }
 
-            return "Failed";
+            return $"Part 2 Acc : {Acc}";
         }
 
-        private void RunProgram()
+        private bool RunProgram()
         {
             LineVisited = new HashSet<int>();
             Curr = Acc = 0;
 
             while (true)
             {
+                if (Curr >= MemoryStore.Length)
+                    return true; //reached end of code block
+
+                if (LineVisited.Contains(Curr))
+                    return false; //infinite loop
+
+                LineVisited.Add(Curr);
+
                 var ins = GetIntruction(Curr);
 
                 switch (ins.Item1)
@@ -106,30 +89,9 @@ namespace AOC2020
 
         private (string, int) GetIntruction(int lineNum)
         {
-            if (lineNum >= Memory.Length)
-                throw new OutOfProgramException($"Out of loop, Accumulator = {Acc}");
-
-            if (LineVisited.Contains(lineNum))
-                throw new InfiniteLoopException($"Infinite loop, Accumulator = {Acc}");
-
-            LineVisited.Add(lineNum);
-            var line = Memory[lineNum].Split(" ");
+            var line = MemoryStore[lineNum].Split(" ");
 
             return (line[0].Trim(), int.Parse(line[1]));
         }
-    }
-
-    public class InfiniteLoopException : Exception
-    {
-        public InfiniteLoopException() { }
-        public InfiniteLoopException(string message) : base(message) { }
-        public InfiniteLoopException(string message, Exception inner) : base(message, inner) { }
-    }
-
-    public class OutOfProgramException : Exception
-    {
-        public OutOfProgramException() { }
-        public OutOfProgramException(string message) : base(message) { }
-        public OutOfProgramException(string message, Exception inner) : base(message, inner) { }
     }
 }

@@ -27,8 +27,7 @@ namespace AOC2020
                 docs.Add(doc);
             }
 
-            Console.WriteLine(Part1());
-            Console.WriteLine(Part2());
+            Run(() => Part1(), () => Part2());
         }
 
         public string Part1()

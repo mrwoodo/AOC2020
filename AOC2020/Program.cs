@@ -10,10 +10,10 @@ namespace AOC2020
         {
             var days = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.IsSubclassOf(typeof(DayBase)));
 
-            //foreach (var day in days)
-            //    Activator.CreateInstance(day);
+            foreach (var day in days)
+                Activator.CreateInstance(day);
 
-            _ = new Day08();
+            //_ = new Day08();
 
             Console.ReadLine();
         }

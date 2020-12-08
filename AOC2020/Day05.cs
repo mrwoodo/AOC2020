@@ -15,8 +15,7 @@ namespace AOC2020
             Input = (from line in File.ReadAllLines("Input\\Day05.txt")
                      select line).ToList();
 
-            Console.WriteLine(Part1());
-            Console.WriteLine(Part2());
+            Run(() => Part1(), () => Part2());
         }
 
         public string Part1()

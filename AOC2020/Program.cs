@@ -13,7 +13,7 @@ namespace AOC2020
             //foreach (var day in days)
             //    Activator.CreateInstance(day);
 
-            _ = new Day06();
+            _ = new Day07();
 
             Console.ReadLine();
         }

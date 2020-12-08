@@ -1,5 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Rivers;
+using Rivers.Analysis.Traversal;
+using System;
 using System.IO;
 using System.Linq;
 
@@ -7,12 +8,40 @@ namespace AOC2020
 {
     public class Day07 : DayBase, ITwoPartQuestion
     {
-        public List<string> Lines = new List<string>();
+        private Graph graph = new Graph();
+        private const string SEARCH = "shiny gold";
+        private int Part2Amount = 0;
 
         public Day07()
         {
-            Lines = (from line in File.ReadAllLines("Input\\Day07.txt")
+            var Lines = (from line in File.ReadAllLines("Input\\Day07.txt")
                      select line).ToList();
+
+            foreach (var line in Lines)
+            {
+                var c = line.IndexOf("contain");
+                var parentBag = line.Substring(0, c).Replace("bags", "").Trim();
+                var children = line[(c + 8)..];
+                var array = children.Replace(" bags", "").Replace(" bag", "").Replace(".", "").Split(", ");
+
+                //From node
+                if (!graph.Nodes.Contains(parentBag))
+                    graph.Nodes.Add(parentBag);
+
+                foreach (var child in array.Where(i => i != "no other"))
+                {
+                    var quantity = int.Parse(child.Substring(0, child.IndexOf(" ")));
+                    var childBag = child[(child.IndexOf(" ") + 1)..];
+
+                    //To node
+                    if (!graph.Nodes.Contains(childBag))
+                        graph.Nodes.Add(childBag);
+
+                    //Edge
+                    var e = graph.Edges.Add(parentBag, childBag);
+                    e.UserData["quantity"] = quantity;
+                }
+            }
 
             Console.WriteLine(Part1());
             Console.WriteLine(Part2());
@@ -20,12 +49,33 @@ namespace AOC2020
 
         public string Part1()
         {
-            return string.Empty;
+            var paths = 0;
+            foreach (var node in graph.Nodes.Where(n => n.Name != SEARCH))
+                if (node.DepthFirstSearch(n => n.Name == SEARCH) != null)
+                    paths++;
+
+            return $"Paths to {SEARCH} : {paths}";
         }
 
         public string Part2()
         {
-            return string.Empty;
+            foreach (var e in graph.Nodes[SEARCH].OutgoingEdges)
+                InspectBag(e);
+
+            return $"Bags inside {SEARCH} : {Part2Amount}";
+        }
+
+        public void InspectBag(Edge edge)
+        {
+            var quantity = (int)(edge.UserData["quantity"]);
+            Part2Amount += quantity;
+
+            //Console.WriteLine($"{edge.Source.Name} => {edge.Target.Name}, {amount}x");
+            for (int i = 0; i < quantity; i++)
+            {
+                foreach (var innerBag in edge.Target.OutgoingEdges)
+                    InspectBag(innerBag);
+            }
         }
     }
 }

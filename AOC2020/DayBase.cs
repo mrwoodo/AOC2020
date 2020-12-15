@@ -20,6 +20,7 @@ namespace AOC2020
             s.Stop();
             Console.WriteLine($"Part 1....{part1Answer} (took {s.ElapsedMilliseconds}ms)");
 
+            s.Reset();
             s.Start();
             var part2Answer = part2();
             s.Stop();

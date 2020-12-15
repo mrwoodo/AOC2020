@@ -8,78 +8,74 @@ namespace AOC2020
 {
     public class Day15 : DayBase, ITwoPartQuestion
     {
-        private Dictionary<int, string> Nums = new Dictionary<int, string>();
-        private List<int> PreviousNums = new List<int>();
-        private IEnumerable<int> Input;
+        //Dict Key = Number spoken
+        //Dict Value = Tuple (1st = Most recent turn spoken, 2nd = 2nd most recent turn spoken)
+        //We keep popping turns off the tuple, as we don't care about turns older than 1st/2nd
+        private Dictionary<int, (int?, int?)> Nums = new Dictionary<int, (int?, int?)>();
+        private readonly IEnumerable<int> Input;
 
         public Day15()
         {
             Input = (from s in File.ReadAllText("Input\\Day15.txt").Split(",")
                          select int.Parse(s));
+
             Run(() => Part1(), () => Part2());
         }
 
         private void LoadData()
         {
-            Nums = new Dictionary<int, string>();
+            Nums = new Dictionary<int, (int?, int?)>();
 
             for (int i = 0; i < Input.Count(); i++)
-                Nums.Add(Input.ElementAt(i), (i + 1).ToString());
-
-            PreviousNums = Input.ToList();
+                Nums.Add(Input.ElementAt(i), (i + 1, null));
         }
 
         public string Part1()
         {
             var turns = 2020;
-            var result = PlayGame(turns);
+            var nthNumberSpoken = PlayGame(turns);
 
-            return $"Number #{turns} = {result}";
+            return $"Number #{turns} = {nthNumberSpoken}";
         }
 
         public string Part2()
         {
             var turns = 30000000;
-            var result = PlayGame(turns);
+            var nthNumberSpoken = PlayGame(turns);
 
-            return $"Number #{turns} = {result}";
+            return $"Number #{turns} = {nthNumberSpoken}";
         }
 
         private int PlayGame(int Turns)
         {
             LoadData();
             var turn = Nums.Count() + 1;
-            var prev = PreviousNums[turn - 2];
+            //Start off with the last input number
+            var prevSpoken = Nums.Where(i => i.Value.Item1 == (turn - 2)).FirstOrDefault().Key;
 
             while (turn <= Turns)
             {
-                var timesSpoken = Nums[prev].Split(',');
+                var timesSpoken = Nums[prevSpoken];
 
-                if (timesSpoken.Length == 1)
+                if (timesSpoken.Item2.HasValue)
                 {
-                    prev = 0;
-                    Nums[0] = Nums[0] + $",{turn}";
-                }
-                else if (timesSpoken.Length > 1)
-                {
-                    var i1 = int.Parse(timesSpoken[^1]);
-                    var i2 = int.Parse(timesSpoken[^2]);
+                    prevSpoken = timesSpoken.Item1.Value - timesSpoken.Item2.Value;
 
-                    //Keep pruning the dictionary values to keep the split fast
-                    Nums[prev] = $"{i2},{i1}";
-
-                    prev = i1 - i2;
-
-                    if (Nums.ContainsKey(i1 - i2))
-                        Nums[i1 - i2] = Nums[i1 - i2] + $",{turn}";
+                    if (Nums.ContainsKey(prevSpoken))
+                        Nums[prevSpoken] = (turn, Nums[prevSpoken].Item1);
                     else
-                        Nums[i1 - i2] = $"{turn}";
+                        Nums[prevSpoken] = (turn, null);
+                }
+                else
+                {
+                    prevSpoken = 0;
+                    Nums[0] = (turn, Nums[0].Item1);
                 }
 
                 turn++;
             }
 
-            return prev;
+            return prevSpoken;
         }
     }
 }

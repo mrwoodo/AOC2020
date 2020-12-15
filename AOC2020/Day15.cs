@@ -31,32 +31,34 @@ namespace AOC2020
 
         public string Part1()
         {
-            int Turns = 2020;
-            PlayGame(Turns);
-            return $"Number #{Turns} = {PreviousNums[Turns - 1]}";
+            var turns = 2020;
+            var result = PlayGame(turns);
+
+            return $"Number #{turns} = {result}";
         }
 
         public string Part2()
         {
-            int Turns = 30000000;
-            PlayGame(Turns);
-            return $"Number #{Turns} = {PreviousNums[Turns - 1]}";
+            var turns = 30000000;
+            var result = PlayGame(turns);
+
+            return $"Number #{turns} = {result}";
         }
 
-        private void PlayGame(int Turns)
+        private int PlayGame(int Turns)
         {
             LoadData();
-            var Turn = Nums.Count() + 1;
+            var turn = Nums.Count() + 1;
+            var prev = PreviousNums[turn - 2];
 
-            while (Turn <= Turns)
+            while (turn <= Turns)
             {
-                var previousNumber = PreviousNums[Turn - 2];
-                var timesSpoken = Nums[previousNumber].Split(',');
+                var timesSpoken = Nums[prev].Split(',');
 
                 if (timesSpoken.Length == 1)
                 {
-                    PreviousNums.Add(0);
-                    Nums[0] = Nums[0] + $",{Turn}";
+                    prev = 0;
+                    Nums[0] = Nums[0] + $",{turn}";
                 }
                 else if (timesSpoken.Length > 1)
                 {
@@ -64,17 +66,20 @@ namespace AOC2020
                     var i2 = int.Parse(timesSpoken[^2]);
 
                     //Keep pruning the dictionary values to keep the split fast
-                    Nums[previousNumber] = $"{i2},{i1}";
+                    Nums[prev] = $"{i2},{i1}";
 
-                    PreviousNums.Add(i1 - i2);
+                    prev = i1 - i2;
+
                     if (Nums.ContainsKey(i1 - i2))
-                        Nums[i1 - i2] = Nums[i1 - i2] + $",{Turn}";
+                        Nums[i1 - i2] = Nums[i1 - i2] + $",{turn}";
                     else
-                        Nums[i1 - i2] = $"{Turn}";
+                        Nums[i1 - i2] = $"{turn}";
                 }
 
-                Turn++;
+                turn++;
             }
+
+            return prev;
         }
     }
 }

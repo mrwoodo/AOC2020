@@ -50,8 +50,7 @@ namespace AOC2020
         {
             LoadData();
             var turn = Nums.Count() + 1;
-            //Start off with the last input number
-            var prevSpoken = Nums.Where(i => i.Value.Item1 == (turn - 2)).FirstOrDefault().Key;
+            var prevSpoken = 0;
 
             while (turn <= Turns)
             {

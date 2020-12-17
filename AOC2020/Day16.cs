@@ -10,10 +10,10 @@ namespace AOC2020
     {
         public const int MAX_WIDTH = 1000;
         public List<string> Lines = new List<string>();
-        public StringBuilder globalRule = new StringBuilder();
+        public StringBuilder GlobalRule = new StringBuilder();
         public Dictionary<string, StringBuilder> Rules = new Dictionary<string, StringBuilder>();
         public int[] MyTicket;
-        public List<int[]> NearbyTickets = new List<int[]>();
+        public List<int[]> OtherTickets = new List<int[]>();
 
         public Day16()
         {
@@ -28,6 +28,7 @@ namespace AOC2020
             var readingRules = true;
             var i = 0;
 
+            //Read Rules
             while (readingRules)
             {
                 var line = Lines[i].Split(": ");
@@ -35,17 +36,17 @@ namespace AOC2020
                 if (line.Count() > 1)
                 {
                     var splitNum = line[1].Split(" or ");
-                    var rule = getRule(splitNum);
+                    var rule = GetRule(splitNum);
 
                     Rules.Add(line[0], rule);
 
-                    if (globalRule.Length == 0)
-                        globalRule = new StringBuilder(rule.ToString());
+                    if (GlobalRule.Length == 0)
+                        GlobalRule = new StringBuilder(rule.ToString());
                     else
                     {
                         for (int j = 0; j < MAX_WIDTH; j++)
-                            if (rule[j] == '1' && globalRule[j] == '0')
-                                globalRule[j] = '1';
+                            if (rule[j] == '1' && GlobalRule[j] == '0')
+                                GlobalRule[j] = '1';
                     }
                 }
                 else
@@ -53,39 +54,44 @@ namespace AOC2020
                 i++;
             }
 
+            //Read My Ticket
             MyTicket = Lines[i + 1].Split(',').ToInts();
 
+            //Read Other Tickets
             for (int j = i + 4; j < Lines.Count; j++)
-                NearbyTickets.Add(Lines[j].Split(',').ToInts());
+                OtherTickets.Add(Lines[j].Split(',').ToInts());
 
+            //Work out with other Tickets are invalid
             var failedScan = 0;
-
-            for (int j = NearbyTickets.Count - 1; j >= 0; j--)
+            for (int j = OtherTickets.Count - 1; j >= 0; j--)
             {
-                var failed = false;
-                foreach (var field in NearbyTickets[j])
+                var invalidTicket = false;
+                foreach (var field in OtherTickets[j])
                 {
-                    if (globalRule[field] == '0')
+                    if (GlobalRule[field] == '0')
                     {
                         failedScan += field;
-                        failed = true;
+                        invalidTicket = true;
                     }
                 }
 
-                if (failed)
-                    NearbyTickets.RemoveAt(j);
+                if (invalidTicket)
+                    OtherTickets.RemoveAt(j);
             }
 
             return $"Ticket scanning error rate : {failedScan}";
         }
 
-        private StringBuilder getRule(string[] numRange)
+        //Lets say a rule is "2-5 or 8-10", we make a StringBuilder which has:
+        //00111100111 - The rule is treated like a mask against integer values
+        //e.g. 4 is valid because char[4] = 1 whereas 7 is invalid because char[7] = 0
+        private StringBuilder GetRule(string[] numRange)
         {
             var sb = new StringBuilder("".PadLeft(MAX_WIDTH, '0'));
 
             foreach (var range in numRange)
             {
-                var r1 = getRange(range);
+                var r1 = GetRange(range);
 
                 for (int i = r1.Item1; i <= r1.Item2; i++)
                     sb[i] = '1';
@@ -94,46 +100,35 @@ namespace AOC2020
             return sb;
         }
 
-        private (int, int) getRange(string n)
+        private (int, int) GetRange(string n)
         {
             var s = n.Split('-');
-
             return (int.Parse(s[0]), int.Parse(s[1]));
         }
 
         public string Part2()
         {
-            var colRules = new Dictionary<int, List<string>>();
+            var potentialRules = new Dictionary<int, List<string>>();
+            var usedrule = new Dictionary<string, int>();
 
-            for (int i = 0; i < NearbyTickets[0].Length; i++)
+            //Slice the tickets vertically to get column values,
+            //then check which rules would fit these values
+            for (int i = 0; i < OtherTickets[0].Length; i++)
+                potentialRules.Add(i, GetRulesThatFitColumnValues((from col in OtherTickets select col[i]).ToList()));
+
+            foreach (var rule in potentialRules.OrderBy(i => i.Value.Count))
             {
-                var col = new List<int>();
-
-                foreach (var t in NearbyTickets)
-                    col.Add(t[i]);
-
-                colRules.Add(i, validateColumnAgainstRule(col));
-            }
-
-            var ordered = from r in colRules orderby r.Value.Count select r;
-            var used = new List<string>();
-            var usedCol = new List<int>();
-
-            foreach (var col in ordered)
-            {
-                if (col.Value.Count == 1)
-                {
-                    used.Add(col.Value[0]);
-                    usedCol.Add(col.Key);
-                }
+                //If only 1 rule fits for a column, it must be used
+                if (rule.Value.Count == 1)
+                    usedrule[(rule.Value[0])] = rule.Key;
                 else
                 {
-                    foreach (var possibleField in col.Value)
+                    //Otherwise find rules in order
+                    foreach (var possibleField in rule.Value)
                     {
-                        if (!used.Contains(possibleField))
+                        if (!usedrule.ContainsKey(possibleField))
                         {
-                            used.Add(possibleField);
-                            usedCol.Add(col.Key);
+                            usedrule[possibleField] = rule.Key;
                             break;
                         }
                     }
@@ -141,16 +136,13 @@ namespace AOC2020
             }
 
             long answer = 1;
-            for (int i = 0; i < used.Count(); i++)
-            {
-                if (used[i].StartsWith("departure"))
-                    answer *= MyTicket[usedCol[i]];
-            }
+            foreach (var key in usedrule.Keys.Where(i => i.StartsWith("departure")))
+                answer *= MyTicket[usedrule[key]];
 
             return $"Departure fields multiplied : {answer}";
         }
 
-        private List<string> validateColumnAgainstRule(List<int> vals)
+        private List<string> GetRulesThatFitColumnValues(List<int> columnValues)
         {
             var result = new List<string>();
 
@@ -159,9 +151,9 @@ namespace AOC2020
                 var addRule = true;
                 var rule = Rules[k];
 
-                for (int i = 0; i < vals.Count(); i++)
+                for (int i = 0; i < columnValues.Count(); i++)
                 {
-                    if (rule[vals[i]] == '0')
+                    if (rule[columnValues[i]] == '0')
                     {
                         addRule = false;
                         break;
@@ -178,11 +170,9 @@ namespace AOC2020
 
     public static class Extensions
     {
-        public static int[] ToInts(this string[] str)
+        public static int[] ToInts(this string[] stringValue)
         {
-            var r = (from s in str select int.Parse(s));
-
-            return r.ToArray();
+            return (from val in stringValue select int.Parse(val)).ToArray();
         }
     }
 }

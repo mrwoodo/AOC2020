@@ -53,24 +53,17 @@ namespace AOC2020
                 StateChanged = false;
             }
 
-            public Point(int x, int y, int z, int a, bool active = false)
+            public Point(int x, int y, int z, int a, bool active = false) : this(x, y, z, active)
             {
-                X = x;
-                Y = y;
-                Z = z;
                 A = a;
-                Active = active;
-                NewActive = false;
-                StateChanged = false;
             }
-
         }
 
         public class World
         {
-            private readonly List<Point> Points = new List<Point>();
-            public int ActivePoints => Points.Count(i => i.Active);
-            private readonly Dictionary<string, int> PointCache = new Dictionary<string, int>();
+            //Key in the Points dict is {x},{y},{z},{a}.
+            private readonly Dictionary<string, Point> Points = new Dictionary<string, Point>();
+            public int ActivePoints => Points.Values.Count(i => i.Active);
             private int Xmin = 0;
             private int Xmax = 0;
             private int Ymin = 0;
@@ -84,34 +77,39 @@ namespace AOC2020
             public World(bool fourD)
             {
                 FourD = fourD;
-                Points = new List<Point>();
             }
 
             public World(List<string> input, bool fourD)
             {
                 FourD = fourD;
                 for (int y = 0; y < input.Count; y++)
+                {
                     for (int x = 0; x < input[y].Length; x++)
-                        AddPoint(new Point(x, -y, 0, 0, input[y][x] == '#'), true);
+                    {
+                        var p = GetPoint(x, -y, 0, 0, updateBoundary: true);
+                        p.Active = input[y][x] == '#';
+                    }
+                }
             }
 
             public void Play(int turns)
             {
                 for (var turn = 1; turn <= turns; turn++)
                 {
+                    //Make sure the world is at least 1 unit larger on all sides of our known points
+                    //This is because some of these edge points might become active in this turn
                     for (int x = Xmin - 1; x <= Xmax + 1; x++)
                         for (int y = Ymin - 1; y <= Ymax + 1; y++)
                             for (int z = Zmin - 1; z <= Zmax + 1; z++)
                                 for (int a = (FourD ? (Amin - 1) : 0); a <= (FourD ? (Amax + 1) : 0); a++)
-                                    GetPoint(x, y, z, a, false);
+                                    GetPoint(x, y, z, a);
 
                     var count = Points.Count;
 
                     for (int i = 0; i < count; i++)
                     {
-                        var p = Points[i];
-                        var neighbours = GetNeighbours(p);
-                        var activeNeighbours = neighbours.Count(i => i.Active);
+                        var p = Points.ElementAt(i).Value;
+                        var activeNeighbours = GetNeighbours(p);
 
                         //If a cube is active and exactly 2 or 3 of its neighbors are also active, the cube remains active.Otherwise, the cube becomes inactive.
                         if (p.Active && ((activeNeighbours < 2) || (activeNeighbours > 3)))
@@ -128,7 +126,8 @@ namespace AOC2020
                         }
                     }
 
-                    foreach (var p in Points.Where(i => i.StateChanged))
+                    //Change the state of points only at the end, otherwise it will affect the rules above
+                    foreach (var p in Points.Values.Where(i => i.StateChanged))
                     {
                         p.Active = p.NewActive;
                         p.StateChanged = false;
@@ -136,10 +135,10 @@ namespace AOC2020
                 }
             }
 
-            private Point[] GetNeighbours(Point p)
+            private int GetNeighbours(Point p)
             {
-                var result = (FourD ? new Point[80] : new Point[26]);
                 var counter = 0;
+                var Active = 0;
 
                 for (int x = p.X - 1; x <= p.X + 1; x++)
                 {
@@ -153,7 +152,10 @@ namespace AOC2020
                                 { }
                                 else
                                 {
-                                    result[counter] = GetPoint(x, y, z, a, false);
+                                    var n = GetPoint(x, y, z, a);
+
+                                    if (n.Active)
+                                        Active++;
                                     counter++;
                                 }
                             }
@@ -161,41 +163,33 @@ namespace AOC2020
                     }
                 }
 
-                return result;
+                return Active;
             }
 
-            private Point GetPoint(int x, int y, int z, int a, bool updateBoundary)
+            private Point GetPoint(int x, int y, int z, int a, bool updateBoundary = false)
             {
-                var cacheKey = $"{x},{y},{z},{a}";
-                if (PointCache.ContainsKey(cacheKey))
-                    return Points[PointCache[cacheKey]];
+                var key = $"{x},{y},{z},{a}";
 
-                var search = Points.Where(i => ((i.X == x) && (i.Y == y) && (i.Z == z) && (i.A == a))).FirstOrDefault();
-                if (search == null)
+                if (!Points.ContainsKey(key))
                 {
-                    search = new Point(x, y, z, a);
-                    AddPoint(search, updateBoundary);
-                    PointCache[cacheKey] = Points.Count - 1;
+                    var p = new Point(x, y, z, a);
+
+                    Points[key] = p;
+
+                    if (updateBoundary)
+                    {
+                        if (p.X < Xmin) Xmin = p.X;
+                        if (p.X > Xmax) Xmax = p.X;
+                        if (p.Y < Ymin) Ymin = p.Y;
+                        if (p.Y > Ymax) Ymax = p.Y;
+                        if (p.Z < Zmin) Zmin = p.Z;
+                        if (p.Z > Zmax) Zmax = p.Z;
+                        if (p.A < Amin) Amin = p.A;
+                        if (p.A > Amax) Amax = p.A;
+                    }
                 }
 
-                return search;
-            }
-
-            private void AddPoint(Point p, bool updateBoundary)
-            {
-                Points.Add(p);
-
-                if (updateBoundary)
-                {
-                    if (p.X < Xmin) Xmin = p.X;
-                    if (p.X > Xmax) Xmax = p.X;
-                    if (p.Y < Ymin) Ymin = p.Y;
-                    if (p.Y > Ymax) Ymax = p.Y;
-                    if (p.Z < Zmin) Zmin = p.Z;
-                    if (p.Z > Zmax) Zmax = p.Z;
-                    if (p.A < Amin) Amin = p.A;
-                    if (p.A > Amax) Amax = p.A;
-                }
+                return Points[key];
             }
         }
     }

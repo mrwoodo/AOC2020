@@ -53,10 +53,10 @@ namespace AOC2020
                 for (int i = 0; i < trimmed.GetLength(0); i++)
                     sb[counter + i].Append(trimmed[i]);
 
-                var next = curr.Neighbour[1];
+                var next = curr.NeighbourRight;
                 if (next == null)
                 {
-                    curr = curr.LeftMost.Neighbour[2];
+                    curr = curr.LeftMost.NeighbourBottom;
                     if (curr != null)
                         counter += trimmed.GetLength(0);
 
@@ -107,73 +107,61 @@ namespace AOC2020
             if (c2.NeighboursPopulated == 4)
                 return;
 
-            if (c1.Neighbour[0] == null) //Try to pair top
+            if (c1.NeighbourTop == null)
             {
                 for (int i = 0; i < 8; i++)
                 {
-                    if (!c2.Used)
-                        c2.SwitchToCombo(i);
-
+                    c2.SwitchToCombo(i);
                     if (c2.side.Bottom == c1.side.Top)
                     {
-                        c1.Neighbour[0] = c2;
-                        c2.Neighbour[2] = c1;
-                        c2.Used = true;
-                        c1.Used = true;
+                        c1.NeighbourTop = c2;
+                        c2.NeighbourBottom = c1;
+                        c1.Used = c2.Used = true;
                         break;
                     }
                 }
             }
 
-            if (c1.Neighbour[1] == null) //Try to pair right
+            if (c1.NeighbourRight == null)
             {
                 for (int i = 0; i < 8; i++)
                 {
-                    if (!c2.Used)
-                        c2.SwitchToCombo(i);
-
+                    c2.SwitchToCombo(i);
                     if (c2.side.Left == c1.side.Right)
                     {
-                        c1.Neighbour[1] = c2;
-                        c2.Neighbour[3] = c1;
-                        c2.Used = true;
-                        c1.Used = true;
+                        c1.NeighbourRight = c2;
+                        c2.NeighbourLeft = c1;
+                        c1.Used = c2.Used = true;
                         break;
                     }
                 }
             }
 
-            if (c1.Neighbour[2] == null) //Try to pair bottom
+            if (c1.NeighbourBottom == null)
             {
                 for (int i = 0; i < 8; i++)
                 {
-                    if (!c2.Used)
-                        c2.SwitchToCombo(i);
-
+                    c2.SwitchToCombo(i);
                     if (c2.side.Top == c1.side.Bottom)
                     {
-                        c1.Neighbour[2] = c2;
-                        c2.Neighbour[0] = c1;
-                        c2.Used = true;
-                        c1.Used = true;
+                        c1.NeighbourBottom = c2;
+                        c2.NeighbourTop = c1;
+                        c1.Used = c2.Used = true;
                         break;
                     }
                 }
             }
 
-            if (c1.Neighbour[3] == null) //Try to pair left
+            if (c1.NeighbourLeft == null)
             {
                 for (int i = 0; i < 8; i++)
                 {
-                    if (!c2.Used)
-                        c2.SwitchToCombo(i);
-
+                    c2.SwitchToCombo(i);
                     if (c2.side.Right == c1.side.Left)
                     {
-                        c1.Neighbour[3] = c2;
-                        c2.Neighbour[1] = c1;
-                        c2.Used = true;
-                        c1.Used = true;
+                        c1.NeighbourLeft = c2;
+                        c2.NeighbourRight = c1;
+                        c1.Used = c2.Used = true;
                         break;
                     }
                 }
@@ -187,10 +175,42 @@ namespace AOC2020
         public bool Used { get; set; }
         public Tile[] Neighbour { get; set; }
         public Side side { get; set; }
-        public int NeighboursPopulated => Neighbour.Count(x => x != null);
-        public bool IsTopLeft => ((Neighbour[0] == null) && (Neighbour[3] == null));
         public string Input { get; set; }
         public int SideLength { get; set; }
+        public Tile NeighbourTop
+        {
+            get { return Neighbour[0]; }
+            set
+            {
+                Neighbour[0] = value;
+            }
+        }
+        public Tile NeighbourRight
+        {
+            get { return Neighbour[1]; }
+            set
+            {
+                Neighbour[1] = value;
+            }
+        }
+        public Tile NeighbourBottom
+        {
+            get { return Neighbour[2]; }
+            set
+            {
+                Neighbour[2] = value;
+            }
+        }
+        public Tile NeighbourLeft
+        {
+            get { return Neighbour[3]; }
+            set
+            {
+                Neighbour[3] = value;
+            }
+        }
+        public int NeighboursPopulated => Neighbour.Count(x => x != null);
+        public bool IsTopLeft => ((NeighbourTop == null) && (NeighbourLeft == null));
         public Tile LeftMost
         {
             get
@@ -199,10 +219,10 @@ namespace AOC2020
                 Tile search = this;
                 while (!finished)
                 {
-                    if (search.Neighbour[3] == null)
+                    if (search.NeighbourLeft == null)
                         finished = true;
                     else
-                        search = search.Neighbour[3];
+                        search = search.NeighbourLeft;
                 }
                 return search;
             }
@@ -233,19 +253,21 @@ namespace AOC2020
                     Rotate();
             }
 
-            Used = false;
             Neighbour = new Tile[4];
+            Used = false;
             SwitchToCombo(0);
         }
 
         public void SwitchToCombo(int combo)
         {
-            side = new Side(
+            if (!this.Used)
+            {
+                side = new Side(
                 top: Combinations[combo, 0],
                 right: Combinations[combo, 1],
                 bottom: Combinations[combo, 2],
-                left: Combinations[combo, 3]
-            );
+                left: Combinations[combo, 3]);
+            }
         }
 
         private void Flip()

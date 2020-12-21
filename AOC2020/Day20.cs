@@ -8,7 +8,8 @@ namespace AOC2020
 {
     public class Day20 : DayBase, ITwoPartQuestion
     {
-        private string Lines;
+        private readonly string Lines;
+        private Photo photo;
 
         public Day20()
         {
@@ -19,7 +20,7 @@ namespace AOC2020
 
         public string Part1()
         {
-            var photo = new Photo(Lines);
+            photo = new Photo(Lines);
             photo.Assemble();
 
             long answer = 1;
@@ -36,6 +37,35 @@ namespace AOC2020
 
         public string Part2()
         {
+            var curr = photo.Tiles.First(i => i.IsTopLeft);
+            var lines = Convert.ToInt32(Math.Sqrt(Convert.ToDouble(photo.Tiles.Count()))) * (curr.SideLength - 2);
+            var sb = new StringBuilder[lines];
+            var counter = 0;
+
+            for (int i = 0; i < lines; i++)
+                sb[i] = new StringBuilder();
+
+            while (curr != null)
+            {
+                Console.Write($"{curr.ID}\t");
+                var trimmed = curr.GetTrimmedInput();
+
+                for (int i = 0; i < trimmed.GetLength(0); i++)
+                    sb[counter + i].Append(trimmed[i]);
+
+                var next = curr.Neighbour[1];
+                if (next == null)
+                {
+                    curr = curr.LeftMost.Neighbour[2];
+                    if (curr != null)
+                        counter += trimmed.GetLength(0);
+
+                    Console.WriteLine();
+                }
+                else
+                    curr = next;
+            }
+
             return $"";
         }
     }
@@ -56,7 +86,7 @@ namespace AOC2020
         public void Assemble()
         {
             Tiles[0].Used = true;
-            while (Tiles.Where(t => !t.Used).Count() > 0)
+            while (Tiles.Count(t => !t.Used) > 0)
             {
                 for (int i = 0; i < Tiles.Count; i++)
                 {
@@ -77,7 +107,7 @@ namespace AOC2020
             if (c2.NeighboursPopulated == 4)
                 return;
 
-            if (c1.Neighbour[0] == null)
+            if (c1.Neighbour[0] == null) //Try to pair top
             {
                 for (int i = 0; i < 8; i++)
                 {
@@ -95,7 +125,7 @@ namespace AOC2020
                 }
             }
 
-            if (c1.Neighbour[1] == null)
+            if (c1.Neighbour[1] == null) //Try to pair right
             {
                 for (int i = 0; i < 8; i++)
                 {
@@ -113,7 +143,7 @@ namespace AOC2020
                 }
             }
 
-            if (c1.Neighbour[2] == null)
+            if (c1.Neighbour[2] == null) //Try to pair bottom
             {
                 for (int i = 0; i < 8; i++)
                 {
@@ -131,7 +161,7 @@ namespace AOC2020
                 }
             }
 
-            if (c1.Neighbour[3] == null)
+            if (c1.Neighbour[3] == null) //Try to pair left
             {
                 for (int i = 0; i < 8; i++)
                 {
@@ -157,9 +187,27 @@ namespace AOC2020
         public bool Used { get; set; }
         public Tile[] Neighbour { get; set; }
         public Side side { get; set; }
-        public int NeighboursPopulated => Neighbour.Where(x => x != null).Count();
-        private string Input { get; set; }
-        private int[,] Combinations { get; set; }
+        public int NeighboursPopulated => Neighbour.Count(x => x != null);
+        public bool IsTopLeft => ((Neighbour[0] == null) && (Neighbour[3] == null));
+        public string Input { get; set; }
+        public int SideLength { get; set; }
+        public Tile LeftMost
+        {
+            get
+            {
+                var finished = false;
+                Tile search = this;
+                while (!finished)
+                {
+                    if (search.Neighbour[3] == null)
+                        finished = true;
+                    else
+                        search = search.Neighbour[3];
+                }
+                return search;
+            }
+        }
+        private long[,] Combinations { get; set; }
 
         public Tile(string input)
         {
@@ -172,9 +220,10 @@ namespace AOC2020
                 sb.Append(parse[l]);
 
             Input = sb.ToString();
+            SideLength = Convert.ToInt32(Math.Sqrt(Input.Length));
 
             //Precalculate the 8 combinations of sides when rotated/flipped
-            Combinations = new int[8, 4];
+            Combinations = new long[8, 4];
             for (int i = 0; i < 8; i++) //Initial, Rotate, Rotate, Rotate, Flip, Rotate, Rotate, Rotate
             {
                 GetSides(i);
@@ -195,18 +244,19 @@ namespace AOC2020
                 top: Combinations[combo, 0],
                 right: Combinations[combo, 1],
                 bottom: Combinations[combo, 2],
-                left: Combinations[combo, 3]);
+                left: Combinations[combo, 3]
+            );
         }
 
         private void Flip()
         {
             var sb = new StringBuilder();
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < SideLength; i++)
             {
-                for (int j = 9; j >= 0; j--)
+                for (int j = SideLength - 1; j >= 0; j--)
                 {
-                    var c = Input.Substring(i * 10 + j, 1);
+                    var c = Input.Substring(i * SideLength + j, 1);
                     sb.Append(c);
                 }
             }
@@ -218,9 +268,9 @@ namespace AOC2020
         {
             var sb = new StringBuilder();
 
-            for (int j = 0; j < 10; j++)
+            for (int j = 0; j < SideLength; j++)
             {
-                for (int i = 90; i >= 0; i -= 10)
+                for (int i = Input.Length - SideLength; i >= 0; i -= SideLength)
                 {
                     var c = Input.Substring(i + j, 1);
                     sb.Append(c);
@@ -234,29 +284,39 @@ namespace AOC2020
         {
             var sb = new StringBuilder();
 
-            Combinations[combo, 0] = Convert.ToInt16(Input.Substring(0, 10), 2);
+            Combinations[combo, 0] = Convert.ToInt16(Input.Substring(0, SideLength), 2);
 
-            for (int i = 9; i <= 99; i += 10)
+            for (int i = SideLength - 1; i <= Input.Length - 1; i += SideLength)
                 sb.Append(Input.Substring(i, 1));
 
             Combinations[combo, 1] = Convert.ToInt16(sb.ToString(), 2);
-            Combinations[combo, 2] = Convert.ToInt16(Input.Substring(90, 10), 2);
+            Combinations[combo, 2] = Convert.ToInt16(Input.Substring(Input.Length - SideLength, SideLength), 2);
 
             sb.Clear();
-            for (int i = 0; i <= 90; i += 10)
+            for (int i = 0; i <= Input.Length - SideLength; i += SideLength)
                 sb.Append(Input.Substring(i, 1));
             Combinations[combo, 3] = Convert.ToInt16(sb.ToString(), 2);
+        }
+
+        public StringBuilder[] GetTrimmedInput()
+        {
+            var sb = new StringBuilder[SideLength - 2];
+
+            for (int i = 1; i < SideLength - 1; i++)
+                sb[i - 1] = new StringBuilder(Input.Substring(i * SideLength + 1, SideLength - 2));
+
+            return sb;
         }
     }
 
     public class Side
     {
-        public int Top { get; set; }
-        public int Right { get; set; }
-        public int Bottom { get; set; }
-        public int Left { get; set; }
+        public long Top { get; set; }
+        public long Right { get; set; }
+        public long Bottom { get; set; }
+        public long Left { get; set; }
 
-        public Side(int top, int right, int bottom, int left)
+        public Side(long top, long right, long bottom, long left)
         {
             Top = top;
             Right = right;

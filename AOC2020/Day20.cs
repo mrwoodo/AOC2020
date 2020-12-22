@@ -37,34 +37,7 @@ namespace AOC2020
 
         public string Part2()
         {
-            var curr = photo.Tiles.First(i => i.IsTopLeft);
-            var lines = Convert.ToInt32(Math.Sqrt(Convert.ToDouble(photo.Tiles.Count()))) * (curr.SideLength - 2);
-            var sb = new StringBuilder[lines];
-            var counter = 0;
-
-            for (int i = 0; i < lines; i++)
-                sb[i] = new StringBuilder();
-
-            while (curr != null)
-            {
-                Console.Write($"{curr.ID}\t");
-                var trimmed = curr.GetTrimmedInput();
-
-                for (int i = 0; i < trimmed.GetLength(0); i++)
-                    sb[counter + i].Append(trimmed[i]);
-
-                var next = curr.NeighbourRight;
-                if (next == null)
-                {
-                    curr = curr.LeftMost.NeighbourBottom;
-                    if (curr != null)
-                        counter += trimmed.GetLength(0);
-
-                    Console.WriteLine();
-                }
-                else
-                    curr = next;
-            }
+            var image = photo.Generate();
 
             return $"";
         }
@@ -112,7 +85,7 @@ namespace AOC2020
                 for (int i = 0; i < 8; i++)
                 {
                     c2.SwitchToCombo(i);
-                    if (c2.side.Bottom == c1.side.Top)
+                    if (c2.Bottom == c1.Top)
                     {
                         c1.NeighbourTop = c2;
                         c2.NeighbourBottom = c1;
@@ -127,7 +100,7 @@ namespace AOC2020
                 for (int i = 0; i < 8; i++)
                 {
                     c2.SwitchToCombo(i);
-                    if (c2.side.Left == c1.side.Right)
+                    if (c2.Left == c1.Right)
                     {
                         c1.NeighbourRight = c2;
                         c2.NeighbourLeft = c1;
@@ -142,7 +115,7 @@ namespace AOC2020
                 for (int i = 0; i < 8; i++)
                 {
                     c2.SwitchToCombo(i);
-                    if (c2.side.Top == c1.side.Bottom)
+                    if (c2.Top == c1.Bottom)
                     {
                         c1.NeighbourBottom = c2;
                         c2.NeighbourTop = c1;
@@ -157,7 +130,7 @@ namespace AOC2020
                 for (int i = 0; i < 8; i++)
                 {
                     c2.SwitchToCombo(i);
-                    if (c2.side.Right == c1.side.Left)
+                    if (c2.Right == c1.Left)
                     {
                         c1.NeighbourLeft = c2;
                         c2.NeighbourRight = c1;
@@ -167,16 +140,62 @@ namespace AOC2020
                 }
             }
         }
+
+        public Tile Generate()
+        {
+            var curr = Tiles.First(i => i.IsTopLeft);
+            var lines = Convert.ToInt32(Math.Sqrt(Convert.ToDouble(Tiles.Count()))) * (curr.SideLength - 2);
+            var sb = new StringBuilder[lines];
+            var counter = 0;
+
+            for (int i = 0; i < lines; i++)
+                sb[i] = new StringBuilder();
+
+            //Use Stringbuilders to make a large Tile composed of the original Tiles
+            while (curr != null)
+            {
+                Console.Write($"{curr.ID}\t");
+                var borderless = curr.RemoveBorder();
+
+                for (int i = 0; i < borderless.GetLength(0); i++)
+                    sb[counter + i].Append(borderless[i]);
+
+                var next = curr.NeighbourRight;
+                if (next == null)
+                {
+                    curr = curr.LeftMost.NeighbourBottom;
+                    if (curr != null)
+                        counter += borderless.GetLength(0);
+
+                    Console.WriteLine();
+                }
+                else
+                    curr = next;
+            }
+
+            //Generate the large Tile
+            var imageInput = new StringBuilder("Tile 0:\r\n");
+            for (int i = 0; i < sb.Length; i++)
+                imageInput.Append(sb[i] + "\r\n");
+
+            var image = new Tile(imageInput.ToString());
+
+            return image;
+        }
     }
 
     public class Tile
     {
         public int ID { get; set; }
         public bool Used { get; set; }
-        public Tile[] Neighbour { get; set; }
-        public Side side { get; set; }
-        public string Input { get; set; }
+        public long Top { get; set; }
+        public long Right { get; set; }
+        public long Bottom { get; set; }
+        public long Left { get; set; }
+        public StringBuilder[] Input { get; set; }
         public int SideLength { get; set; }
+
+        private Tile[] Neighbour { get; set; }
         public Tile NeighbourTop
         {
             get { return Neighbour[0]; }
@@ -231,119 +250,92 @@ namespace AOC2020
 
         public Tile(string input)
         {
-            var parse = input.ToString().Split("\r\n");
+            var parse = input.ToString().Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
             var tileID = parse[0].Replace("Tile ", "").Replace(":", "");
-            var sb = new StringBuilder();
-
             ID = int.Parse(tileID);
+            Input = new StringBuilder[parse.Length - 1];
+
             for (int l = 1; l < parse.Length; l++)
-                sb.Append(parse[l]);
+                Input[l - 1] = new StringBuilder(parse[l]);
 
-            Input = sb.ToString();
-            SideLength = Convert.ToInt32(Math.Sqrt(Input.Length));
-
-            //Precalculate the 8 combinations of sides when rotated/flipped
-            Combinations = new long[8, 4];
-            for (int i = 0; i < 8; i++) //Initial, Rotate, Rotate, Rotate, Flip, Rotate, Rotate, Rotate
+            SideLength = Input[0].Length;
+            if (SideLength < 32)
             {
-                GetSides(i);
-                if (i == 3)
-                    Flip();
-                else
-                    Rotate();
-            }
+                //Precalculate the 8 combinations of sides when rotated/flipped
+                Combinations = new long[8, 4];
+                for (int i = 0; i < 8; i++)
+                {
+                    GetSides(i);
+                    if (i == 3)
+                        Flip();
+                    else
+                        Rotate();
+                }
 
-            Neighbour = new Tile[4];
-            Used = false;
-            SwitchToCombo(0);
+                Neighbour = new Tile[4];
+                Used = false;
+                SwitchToCombo(0);
+            }
         }
 
         public void SwitchToCombo(int combo)
         {
             if (!this.Used)
             {
-                side = new Side(
-                top: Combinations[combo, 0],
-                right: Combinations[combo, 1],
-                bottom: Combinations[combo, 2],
-                left: Combinations[combo, 3]);
+                Top = Combinations[combo, 0];
+                Right = Combinations[combo, 1];
+                Bottom = Combinations[combo, 2];
+                Left = Combinations[combo, 3];
             }
         }
 
         private void Flip()
         {
-            var sb = new StringBuilder();
-
-            for (int i = 0; i < SideLength; i++)
-            {
-                for (int j = SideLength - 1; j >= 0; j--)
-                {
-                    var c = Input.Substring(i * SideLength + j, 1);
-                    sb.Append(c);
-                }
-            }
-
-            Input = sb.ToString();
+            for (int i = 0; i < Input.Length; i++)
+                Input[i] = new StringBuilder(new string(Input[i].ToString().Reverse().ToArray()));
         }
 
         private void Rotate()
         {
-            var sb = new StringBuilder();
-
-            for (int j = 0; j < SideLength; j++)
+            var temp = new string[Input.Length];
+            for (int i = 0; i < Input.Length; i++)
             {
-                for (int i = Input.Length - SideLength; i >= 0; i -= SideLength)
-                {
-                    var c = Input.Substring(i + j, 1);
-                    sb.Append(c);
-                }
+                temp[i] = Input[i].ToString();
+                Input[i].Clear();
             }
 
-            Input = sb.ToString();
+            for (int x = 0; x < temp[0].Length; x++)
+                for (int y = temp.Length - 1; y >= 0; y--)
+                    Input[x].Append(temp[y].Substring(x, 1));
         }
 
         private void GetSides(int combo)
         {
             var sb = new StringBuilder();
 
-            Combinations[combo, 0] = Convert.ToInt16(Input.Substring(0, SideLength), 2);
+            Combinations[combo, 0] = Convert.ToInt32(Input[0].ToString(), 2);
 
-            for (int i = SideLength - 1; i <= Input.Length - 1; i += SideLength)
-                sb.Append(Input.Substring(i, 1));
+            for (int i = 0; i < SideLength; i++)
+                sb.Append(Input[i][SideLength - 1]);
 
-            Combinations[combo, 1] = Convert.ToInt16(sb.ToString(), 2);
-            Combinations[combo, 2] = Convert.ToInt16(Input.Substring(Input.Length - SideLength, SideLength), 2);
+            Combinations[combo, 1] = Convert.ToInt32(sb.ToString(), 2);
+            Combinations[combo, 2] = Convert.ToInt32(Input[^1].ToString(), 2);
 
             sb.Clear();
-            for (int i = 0; i <= Input.Length - SideLength; i += SideLength)
-                sb.Append(Input.Substring(i, 1));
-            Combinations[combo, 3] = Convert.ToInt16(sb.ToString(), 2);
+            for (int i = 0; i < SideLength; i++)
+                sb.Append(Input[i][0]);
+
+            Combinations[combo, 3] = Convert.ToInt32(sb.ToString(), 2);
         }
 
-        public StringBuilder[] GetTrimmedInput()
+        public StringBuilder[] RemoveBorder()
         {
             var sb = new StringBuilder[SideLength - 2];
 
             for (int i = 1; i < SideLength - 1; i++)
-                sb[i - 1] = new StringBuilder(Input.Substring(i * SideLength + 1, SideLength - 2));
+                sb[i - 1] = new StringBuilder(Input[i].ToString().Substring(1, Input[i].Length - 2));
 
             return sb;
-        }
-    }
-
-    public class Side
-    {
-        public long Top { get; set; }
-        public long Right { get; set; }
-        public long Bottom { get; set; }
-        public long Left { get; set; }
-
-        public Side(long top, long right, long bottom, long left)
-        {
-            Top = top;
-            Right = right;
-            Bottom = bottom;
-            Left = left;
         }
     }
 }

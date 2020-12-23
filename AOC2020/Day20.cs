@@ -37,9 +37,51 @@ namespace AOC2020
 
         public string Part2()
         {
+            /*
+                              #
+            #    ##    ##    ###
+             #  #  #  #  #  #
+            */
+            var monster = new List<(int, int)> { (18, 0), (0, 1), (5, 1), (6, 1), (11, 1), (12, 1),
+                                                (17, 1), (18, 1), (19, 1), (1, 2), (4, 2), (7, 2),
+                                                (10, 2), (13, 2), (16, 2) };
             var image = photo.Generate();
+            var monstersFound = 0;
+            var counter = 0;
+            var maxY = monster.Max(i => i.Item2);
+            var maxX = monster.Max(i => i.Item1);
 
-            return $"";
+            while ((monstersFound == 0) && (counter < 8))
+            {
+                image.SwitchToCombo(counter);
+
+                for (int y = 0; y < image.Pixels.Length - maxY; y++)
+                {
+                    for (int x = 0; x < image.Pixels.Length - maxX; x++)
+                    {
+                        var foundEveryPixel = true;
+                        foreach (var m in monster)
+                        {
+                            if (image.Pixels[y + m.Item2][x + m.Item1] == '0')
+                            {
+                                foundEveryPixel = false;
+                                break;
+                            }
+                        }
+                        if (foundEveryPixel)
+                            monstersFound++;
+                    }
+                }
+                //Keep flipping/rotating until we find something
+                if (monstersFound == 0)
+                    counter++;
+            }
+
+            var allHashChars = 0;
+            foreach (var p in image.Pixels)
+                allHashChars += p.Replace("0", "").Length;
+
+            return $"Water Roughness = {allHashChars - (monstersFound * monster.Count)}";
         }
     }
 
@@ -154,7 +196,6 @@ namespace AOC2020
             //Use Stringbuilders to make a large Tile composed of the original Tiles
             while (curr != null)
             {
-                Console.Write($"{curr.ID}\t");
                 var borderless = curr.RemoveBorder();
 
                 for (int i = 0; i < borderless.GetLength(0); i++)
@@ -166,8 +207,6 @@ namespace AOC2020
                     curr = curr.LeftMost.NeighbourBottom;
                     if (curr != null)
                         counter += borderless.GetLength(0);
-
-                    Console.WriteLine();
                 }
                 else
                     curr = next;
@@ -186,49 +225,36 @@ namespace AOC2020
 
     public class Tile
     {
+        private const int COMBOS = 8;
         public int ID { get; set; }
         public bool Used { get; set; }
         public long Top { get; set; }
         public long Right { get; set; }
         public long Bottom { get; set; }
         public long Left { get; set; }
-        public StringBuilder[] Input { get; set; }
+        public StringBuilder[] Pixels { get; set; }
         public int SideLength { get; set; }
+        public Tile NeighbourTop { get; set; }
+        public Tile NeighbourRight { get; set; }
+        public Tile NeighbourBottom { get; set; }
+        public Tile NeighbourLeft { get; set; }
+        public int NeighboursPopulated
+        {
+            get
+            {
+                int result = 0;
+                if (NeighbourTop != null)
+                    result++;
+                if (NeighbourRight != null)
+                    result++;
+                if (NeighbourBottom != null)
+                    result++;
+                if (NeighbourLeft != null)
+                    result++;
 
-        private Tile[] Neighbour { get; set; }
-        public Tile NeighbourTop
-        {
-            get { return Neighbour[0]; }
-            set
-            {
-                Neighbour[0] = value;
+                return result;
             }
         }
-        public Tile NeighbourRight
-        {
-            get { return Neighbour[1]; }
-            set
-            {
-                Neighbour[1] = value;
-            }
-        }
-        public Tile NeighbourBottom
-        {
-            get { return Neighbour[2]; }
-            set
-            {
-                Neighbour[2] = value;
-            }
-        }
-        public Tile NeighbourLeft
-        {
-            get { return Neighbour[3]; }
-            set
-            {
-                Neighbour[3] = value;
-            }
-        }
-        public int NeighboursPopulated => Neighbour.Count(x => x != null);
         public bool IsTopLeft => ((NeighbourTop == null) && (NeighbourLeft == null));
         public Tile LeftMost
         {
@@ -247,35 +273,33 @@ namespace AOC2020
             }
         }
         private long[,] Combinations { get; set; }
+        private StringBuilder[,] PixelCache { get; set; }
 
         public Tile(string input)
         {
             var parse = input.ToString().Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
             var tileID = parse[0].Replace("Tile ", "").Replace(":", "");
             ID = int.Parse(tileID);
-            Input = new StringBuilder[parse.Length - 1];
+            Pixels = new StringBuilder[parse.Length - 1];
 
             for (int l = 1; l < parse.Length; l++)
-                Input[l - 1] = new StringBuilder(parse[l]);
+                Pixels[l - 1] = new StringBuilder(parse[l]);
 
-            SideLength = Input[0].Length;
-            if (SideLength < 32)
+            //Precalculate the 8 combinations of sides when rotated/flipped
+            SideLength = Pixels[0].Length;
+            PixelCache = new StringBuilder[COMBOS, SideLength];
+            Combinations = new long[COMBOS, 4];
+            for (int i = 0; i < COMBOS; i++)
             {
-                //Precalculate the 8 combinations of sides when rotated/flipped
-                Combinations = new long[8, 4];
-                for (int i = 0; i < 8; i++)
-                {
-                    GetSides(i);
-                    if (i == 3)
-                        Flip();
-                    else
-                        Rotate();
-                }
-
-                Neighbour = new Tile[4];
-                Used = false;
-                SwitchToCombo(0);
+                CalculateSides(i);
+                if (i == 3)
+                    Flip();
+                else
+                    Rotate();
             }
+
+            Used = false;
+            SwitchToCombo(0);
         }
 
         public void SwitchToCombo(int combo)
@@ -286,46 +310,54 @@ namespace AOC2020
                 Right = Combinations[combo, 1];
                 Bottom = Combinations[combo, 2];
                 Left = Combinations[combo, 3];
+                for (int j = 0; j < SideLength; j++)
+                    Pixels[j] = PixelCache[combo, j];
             }
         }
 
         private void Flip()
         {
-            for (int i = 0; i < Input.Length; i++)
-                Input[i] = new StringBuilder(new string(Input[i].ToString().Reverse().ToArray()));
+            for (int i = 0; i < Pixels.Length; i++)
+                Pixels[i] = new StringBuilder(new string(Pixels[i].ToString().Reverse().ToArray()));
         }
 
         private void Rotate()
         {
-            var temp = new string[Input.Length];
-            for (int i = 0; i < Input.Length; i++)
+            var temp = new string[Pixels.Length];
+            for (int i = 0; i < Pixels.Length; i++)
             {
-                temp[i] = Input[i].ToString();
-                Input[i].Clear();
+                temp[i] = Pixels[i].ToString();
+                Pixels[i].Clear();
             }
 
             for (int x = 0; x < temp[0].Length; x++)
                 for (int y = temp.Length - 1; y >= 0; y--)
-                    Input[x].Append(temp[y].Substring(x, 1));
+                    Pixels[x].Append(temp[y].Substring(x, 1));
         }
 
-        private void GetSides(int combo)
+        private void CalculateSides(int combination)
         {
             var sb = new StringBuilder();
 
-            Combinations[combo, 0] = Convert.ToInt32(Input[0].ToString(), 2);
+            if (SideLength <= 32)
+            {
+                Combinations[combination, 0] = Convert.ToInt32(Pixels[0].ToString(), 2);
+
+                for (int i = 0; i < SideLength; i++)
+                    sb.Append(Pixels[i][SideLength - 1]);
+
+                Combinations[combination, 1] = Convert.ToInt32(sb.ToString(), 2);
+                Combinations[combination, 2] = Convert.ToInt32(Pixels[^1].ToString(), 2);
+
+                sb.Clear();
+                for (int i = 0; i < SideLength; i++)
+                    sb.Append(Pixels[i][0]);
+
+                Combinations[combination, 3] = Convert.ToInt32(sb.ToString(), 2);
+            }
 
             for (int i = 0; i < SideLength; i++)
-                sb.Append(Input[i][SideLength - 1]);
-
-            Combinations[combo, 1] = Convert.ToInt32(sb.ToString(), 2);
-            Combinations[combo, 2] = Convert.ToInt32(Input[^1].ToString(), 2);
-
-            sb.Clear();
-            for (int i = 0; i < SideLength; i++)
-                sb.Append(Input[i][0]);
-
-            Combinations[combo, 3] = Convert.ToInt32(sb.ToString(), 2);
+                PixelCache[combination, i] = new StringBuilder(Pixels[i].ToString());
         }
 
         public StringBuilder[] RemoveBorder()
@@ -333,7 +365,7 @@ namespace AOC2020
             var sb = new StringBuilder[SideLength - 2];
 
             for (int i = 1; i < SideLength - 1; i++)
-                sb[i - 1] = new StringBuilder(Input[i].ToString().Substring(1, Input[i].Length - 2));
+                sb[i - 1] = new StringBuilder(Pixels[i].ToString().Substring(1, Pixels[i].Length - 2));
 
             return sb;
         }

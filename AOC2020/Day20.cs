@@ -13,7 +13,7 @@ namespace AOC2020
 
         public Day20()
         {
-            Lines = File.ReadAllText("Input\\Day20.txt").Replace('#', '1').Replace('.', '0');
+            Lines = InputFile.Replace('#', '1').Replace('.', '0');
 
             Run(() => Part1(), () => Part2());
         }

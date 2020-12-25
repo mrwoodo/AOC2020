@@ -16,8 +16,7 @@ namespace AOC2020
 
         public Day15()
         {
-            Input = (from s in File.ReadAllText("Input\\Day15.txt").Split(",")
-                         select int.Parse(s));
+            Input = (from s in InputFile.Split(",") select int.Parse(s));
 
             Run(() => Part1(), () => Part2());
         }

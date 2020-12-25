@@ -16,9 +16,7 @@ namespace AOC2020
 
         public Day08()
         {
-            Disk = (from line in File.ReadAllLines("Input\\Day08.txt")
-                    select line).ToList();
-
+            Disk = InputFile.Split("\r\n").ToList();
             Run(() => Part1(), () => Part2());
         }
 

@@ -13,9 +13,7 @@ namespace AOC2020
 
         public Day13()
         {
-            Lines = (from line in File.ReadAllLines("Input\\Day13.txt")
-                     select line).ToList();
-
+            Lines = InputFile.Split("\r\n").ToList();
             EarliestTime = int.Parse(Lines[0]);
             Buses = (from l in Lines[1].Split(',').Where(i => !i.Equals("x"))
                     select int.Parse(l)).ToList();

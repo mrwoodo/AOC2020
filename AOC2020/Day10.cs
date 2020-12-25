@@ -11,7 +11,7 @@ namespace AOC2020
 
         public Day10()
         {
-            Devices = (from line in File.ReadAllLines("Input\\Day10.txt")
+            Devices = (from line in InputFile.Split("\r\n")
                        select int.Parse(line)).OrderBy(i => i).ToList();
 
             Devices.Insert(0, 0);

@@ -4,19 +4,16 @@ namespace AOC2020
 {
     public class Day24 : DayBase, ITwoPartQuestion
     {
-        private readonly string[] Input;
         private readonly Lobby lobby = new Lobby();
 
         public Day24()
         {
-            Input = File.ReadAllLines("Input\\Day24.txt");
-
             Run(() => Part1(), () => Part2());
         }
 
         public string Part1()
         {
-            var blackTiles = lobby.FlipTiles(Input);
+            var blackTiles = lobby.FlipTiles(InputFile.Split("\r\n"));
 
             return $"Black Tiles = {blackTiles}";
         }

@@ -11,9 +11,7 @@ namespace AOC2020
 
         public Day11()
         {
-            Lines = (from line in File.ReadAllLines("Input\\Day11.txt")
-                     select line).ToList();
-
+            Lines = InputFile.Split("\r\n").ToList();
             Run(() => Part1(), () => Part2());
         }
 

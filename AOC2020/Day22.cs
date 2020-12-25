@@ -13,7 +13,7 @@ namespace AOC2020
 
         public Day22()
         {
-            Lines = File.ReadAllText("Input\\Day22.txt").Replace("Player 1:", "").Replace("Player 2:", "");
+            Lines = InputFile.Replace("Player 1:", "").Replace("Player 2:", "");
             Cards = new Queue<int>[2];
             Cards[0] = new Queue<int>();
             Cards[1] = new Queue<int>();

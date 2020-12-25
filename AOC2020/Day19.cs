@@ -8,13 +8,8 @@ namespace AOC2020
 {
     public class Day19 : DayBase, ITwoPartQuestion
     {
-        public List<string> Lines = new List<string>();
-
         public Day19()
         {
-            Lines = (from line in File.ReadAllLines("Input\\Day19.txt")
-                     select line).ToList();
-
             Run(() => Part1(), () => Part2());
         }
 

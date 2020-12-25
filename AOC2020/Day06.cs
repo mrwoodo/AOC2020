@@ -7,10 +7,11 @@ namespace AOC2020
 {
     public class Day06 : DayBase, ITwoPartQuestion
     {
-        public string[] Groups = File.ReadAllText("Input\\Day06.txt").Split("\r\n\r\n");
+        public string[] Groups;
 
         public Day06()
         {
+            Groups = InputFile.Split("\r\n\r\n");
             Run(() => Part1(), () => Part2());
         }
 

@@ -12,8 +12,7 @@ namespace AOC2020
 
         public Day04()
         {
-            Lines = File.ReadAllText("Input\\Day04.txt").Split("\r\n\r\n");
-
+            Lines = InputFile.Split("\r\n\r\n");
             foreach (var line in Lines)
             {
                 var doc = new Document();

@@ -8,12 +8,8 @@ namespace AOC2020
 {
     public class Day21 : DayBase, ITwoPartQuestion
     {
-        private readonly string Lines;
-
         public Day21()
         {
-            Lines = File.ReadAllText("Input\\Day21.txt");
-
             Run(() => Part1(), () => Part2());
         }
 

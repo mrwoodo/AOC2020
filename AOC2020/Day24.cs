@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.IO;
 
 namespace AOC2020
 {
     public class Day24 : DayBase, ITwoPartQuestion
     {
         private readonly string[] Input;
+        private readonly Lobby lobby = new Lobby();
 
         public Day24()
         {
@@ -19,7 +16,6 @@ namespace AOC2020
 
         public string Part1()
         {
-            var lobby = new Lobby();
             var blackTiles = lobby.FlipTiles(Input);
 
             return $"Black Tiles = {blackTiles}";
@@ -27,12 +23,15 @@ namespace AOC2020
 
         public string Part2()
         {
-            return "";
+            var days = 100;
+            var blackTiles = lobby.ArtExhibit(days);
+
+            return $"After {days} days, Black Tiles = {blackTiles}";
         }
 
         public class Lobby
         {
-            private const int SIZE = 100;
+            private const int SIZE = 250;
             private readonly Tile[,] Tiles;
             private readonly int min;
             private readonly int max;
@@ -47,7 +46,8 @@ namespace AOC2020
                 {
                     for (int x = min; x < max; x++)
                     {
-                        //TODO: Half of the items int the Tiles Array are null using this approach
+                        //Using this approach, half the items in the array end up null
+                        //That's why later we keep doing null checks
                         if (((x % 2 == 0) && (y % 2 == 0)) || ((x % 2 != 0) && (y % 2 != 0)))
                             Tiles[x + max, y + max] = new Tile();
                     }
@@ -125,6 +125,55 @@ namespace AOC2020
 
                 return blackTiles;
             }
+
+            public int ArtExhibit(int Days)
+            {
+                for (int day = 0; day < Days; day++)
+                {
+                    //Reset
+                    foreach (var t in Tiles)
+                    {
+                        if (t != null)
+                            t.NewBlack = t.Black;
+                    }
+
+                    //2 rules for flipping
+                    foreach (var t in Tiles)
+                    {
+                        if (t != null)
+                        {
+                            var b = t.BlackTilesAdjacent;
+
+                            if (t.Black && ((b == 0) || (b > 2)))
+                                t.NewBlack = false;
+                            else if (!t.Black && (b == 2))
+                                t.NewBlack = true;
+                        }
+                    }
+
+                    //Simultaneously flip
+                    foreach (var t in Tiles)
+                    {
+                        if (t != null)
+                        {
+                            if (t.NewBlack != t.Black)
+                                t.Black = t.NewBlack;
+                        }
+                    }
+                }
+
+                var result = 0;
+                foreach (var t in Tiles)
+                {
+                    if (t != null)
+                    {
+                        if (t.Black)
+                            result++;
+                    }
+                }
+
+                return result;
+            }
         }
 
         public class Tile
@@ -136,6 +185,24 @@ namespace AOC2020
             public Tile NW { get; set; }
             public Tile NE { get; set; }
             public bool Black { get; set; }
+            public bool NewBlack { get; set; }
+
+            public int BlackTilesAdjacent
+            {
+                get
+                {
+                    var  result = 0;
+
+                    if ((E != null) && (E.Black)) result++;
+                    if ((SE != null) && (SE.Black)) result++;
+                    if ((SW != null) && (SW.Black)) result++;
+                    if ((W != null) && (W.Black)) result++;
+                    if ((NW != null) && (NW.Black)) result++;
+                    if ((NE != null) && (NE.Black)) result++;
+
+                    return result;
+                }
+            }
 
             public int Flip()
             {

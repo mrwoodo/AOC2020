@@ -9,8 +9,10 @@ namespace AOC2020
 {
     public class Day23 : DayBase, ITwoPartQuestion
     {
-        private LinkedList<int> Cups = new LinkedList<int>();
-        private LinkedList<int> PickedUp = new LinkedList<int>();
+        private readonly LinkedList<int> Cups = new LinkedList<int>();
+        private readonly LinkedList<int> PickedUp = new LinkedList<int>();
+        //Find() in a linked-list is very slow - using a Cache to get around this
+        private readonly Dictionary<int, LinkedListNode<int>> Cache = new Dictionary<int, LinkedListNode<int>>();
         private LinkedListNode<int> CurrentCup;
         private int LowestCupVal = 0;
         private int HighestCupVal = 0;
@@ -24,13 +26,13 @@ namespace AOC2020
         public string Part1()
         {
             foreach (var c in (from c in InputFile select int.Parse(c.ToString())))
-                Cups.AddLast(c);
+                Cache[c] = Cups.AddLast(c);
 
             CurrentCup = Cups.First;
             LowestCupVal = Cups.Min();
             HighestCupVal = Cups.Max();
 
-            PlayMove(100);
+            Play(100);
 
             var result = "";
             foreach (var c in Cups)
@@ -42,23 +44,31 @@ namespace AOC2020
 
         public string Part2()
         {
+            Cache.Clear();
+            Cups.Clear();
+            PickedUp.Clear();
+
             foreach (var c in (from c in InputFile select int.Parse(c.ToString())))
-                Cups.AddLast(c);
+                Cache[c] = Cups.AddLast(c);
+
+            LowestCupVal = Cups.Min();
+            HighestCupVal = 1000000;
 
             var i = Cups.Max() + 1;
             for (int l = i; l <= 1000000; l++)
-                Cups.AddLast(l);
+                Cache[l] = Cups.AddLast(l);
 
             CurrentCup = Cups.First;
-            LowestCupVal = Cups.Min();
-            HighestCupVal = Cups.Max();
 
-            PlayMove(10000000);
+            Play(10000000);
 
-            return "";
+            long ans1 = Convert.ToInt64(Cache[1].Next.Value);
+            long ans2 = Convert.ToInt64(Cache[1].Next.Next.Value);
+
+            return $"Cups after Cup1, {ans1} X {ans2} = {ans1 * ans2}";
         }
 
-        private void PlayMove(int moves)
+        private void Play(int moves)
         {
             for (int m = 0; m < moves; m++)
             {
@@ -73,6 +83,7 @@ namespace AOC2020
                 for (int i = 0; i < CUPS_MOVE; i++)
                 {
                     dest = Cups.AddAfter(dest, PickedUp.First());
+                    Cache[dest.Value] = dest;
                     PickedUp.RemoveFirst();
                 }
 
@@ -101,10 +112,8 @@ namespace AOC2020
 
                 if (!PickedUp.Contains(dest))
                 {
-                    var search = Cups.Find(dest);
-                    if (search != null)
-
-                        return search;
+                    if (Cache.ContainsKey(dest))
+                        return Cache[dest];
 
                     dest--;
                 }

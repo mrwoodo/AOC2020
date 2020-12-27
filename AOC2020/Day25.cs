@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace AOC2020
 {
     public class Day25 : DayBase, ITwoPartQuestion
     {
+        private const int SECRET = 20201227;
+
         public List<int> PublicKeys;
 
         public Day25()
@@ -21,7 +20,6 @@ namespace AOC2020
         public string Part1()
         {
             var loopSizeKey = GetLoopSize(PublicKeys[0]);
-            //var loopSizeDoor = GetLoopSize(PublicKeys[1]);
             var encryptionKey = GetEncryptionKey(PublicKeys[1], loopSizeKey);
 
             return $"Encryption key = {encryptionKey}";
@@ -31,12 +29,13 @@ namespace AOC2020
         {
             long val = 1;
             long loopSize = 0;
+            long subjectNumber = 7;
 
             while (val != publicKey)
             {
                 loopSize++;
-                val *= 7;
-                val %= 20201227;
+                val *= subjectNumber;
+                val %= SECRET;
             }
 
             return loopSize;
@@ -49,7 +48,7 @@ namespace AOC2020
             for (long l = 0; l < loopSize; l++)
             {
                 result *= subjectNumber;
-                result %= 20201227;
+                result %= SECRET;
             }
 
             return result;

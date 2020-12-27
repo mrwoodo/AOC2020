@@ -8,6 +8,8 @@ namespace AOC2020
 {
     public class Day22 : DayBase, ITwoPartQuestion
     {
+        private const int PLAYER_1 = 0;
+        private const int PLAYER_2 = 1;
         private readonly string Lines;
         private readonly Queue<int>[] Cards;
 
@@ -15,36 +17,36 @@ namespace AOC2020
         {
             Lines = InputFile.Replace("Player 1:", "").Replace("Player 2:", "");
             Cards = new Queue<int>[2];
-            Cards[0] = new Queue<int>();
-            Cards[1] = new Queue<int>();
+            Cards[PLAYER_1] = new Queue<int>();
+            Cards[PLAYER_2] = new Queue<int>();
             var rows = Lines.Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
 
             for (int i = 0; i < rows.Length; i++)
-                Cards[i < rows.Length / 2 ? 0 : 1].Enqueue(int.Parse(rows[i]));
+                Cards[i < rows.Length / 2 ? PLAYER_1 : PLAYER_2].Enqueue(int.Parse(rows[i]));
 
             Run(() => Part1(), () => Part2());
         }
 
         public string Part1()
         {
-            while ((Cards[0].Count > 0) && (Cards[1].Count > 0))
+            while ((Cards[PLAYER_1].Count > 0) && (Cards[PLAYER_2].Count > 0))
             {
-                var card0 = Cards[0].Dequeue();
-                var card1 = Cards[1].Dequeue();
+                var card1 = Cards[PLAYER_1].Dequeue();
+                var card2 = Cards[PLAYER_2].Dequeue();
 
-                if (card0 > card1)
+                if (card1 > card2)
                 {
-                    Cards[0].Enqueue(card0);
-                    Cards[0].Enqueue(card1);
+                    Cards[PLAYER_1].Enqueue(card1);
+                    Cards[PLAYER_1].Enqueue(card2);
                 }
                 else
                 {
-                    Cards[1].Enqueue(card1);
-                    Cards[1].Enqueue(card0);
+                    Cards[PLAYER_2].Enqueue(card2);
+                    Cards[PLAYER_2].Enqueue(card1);
                 }
             }
 
-            var winner = (Cards[0].Count == 0) ? 1 : 0;
+            var winner = (Cards[PLAYER_1].Count == 0) ? PLAYER_2 : PLAYER_1;
             var score = 0;
             var cardValue = Cards[winner].Count;
 

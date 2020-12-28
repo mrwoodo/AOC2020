@@ -12,9 +12,7 @@ namespace AOC2020
 
         public Day01()
         {
-            expenses = (from line in InputFile.Split("\r\n")
-                        select int.Parse(line)).ToList();
-
+            expenses = InputFileAsIntList;
             Run(() => Part1(), () => Part2());
         }
 

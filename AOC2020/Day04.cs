@@ -7,13 +7,11 @@ namespace AOC2020
 {
     public class Day04 : DayBase, ITwoPartQuestion
     {
-        public string[] Lines;
         public List<Document> docs = new List<Document>();
 
         public Day04()
         {
-            Lines = InputFile.Split("\r\n\r\n");
-            foreach (var line in Lines)
+            foreach (var line in InputFile.Split("\r\n\r\n"))
             {
                 var doc = new Document();
 

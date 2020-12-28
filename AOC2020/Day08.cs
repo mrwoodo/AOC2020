@@ -16,7 +16,7 @@ namespace AOC2020
 
         public Day08()
         {
-            Disk = InputFile.Split("\r\n").ToList();
+            Disk = InputFileAsStringList;
             Run(() => Part1(), () => Part2());
         }
 

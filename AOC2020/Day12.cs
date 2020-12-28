@@ -7,11 +7,8 @@ namespace AOC2020
 {
     public class Day12 : DayBase, ITwoPartQuestion
     {
-        public List<string> Lines = new List<string>();
-
         public Day12()
         {
-            Lines = InputFile.Split("\r\n").ToList();
             Run(() => Part1(), () => Part2());
         }
 
@@ -33,10 +30,10 @@ namespace AOC2020
 
         private void NavigateShip(ShipBase ship)
         {
-            foreach (var line in Lines)
+            foreach (var line in InputFileAsStringList)
             {
                 var cmd = line.Substring(0, 1);
-                var amt = Convert.ToInt32(line.Substring(1));
+                var amt = Convert.ToInt32(line[1..]);
 
                 switch (cmd)
                 {

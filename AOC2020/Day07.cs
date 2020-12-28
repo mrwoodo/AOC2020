@@ -8,15 +8,13 @@ namespace AOC2020
 {
     public class Day07 : DayBase, ITwoPartQuestion
     {
-        private Graph graph = new Graph();
+        private readonly Graph graph = new Graph();
         private const string SEARCH = "shiny gold";
         private int Part2Amount = 0;
 
         public Day07()
         {
-            var Lines = InputFile.Split("\r\n").ToList();
-
-            foreach (var line in Lines)
+            foreach (var line in InputFileAsStringList)
             {
                 var c = line.IndexOf("contain");
                 var parentBag = line.Substring(0, c).Replace("bags", "").Trim();

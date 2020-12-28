@@ -7,13 +7,13 @@ namespace AOC2020
 {
     public class Day13 : DayBase, ITwoPartQuestion
     {
-        public List<string> Lines = new List<string>();
+        public List<string> Lines;
         public List<int> Buses = new List<int>();
         public int EarliestTime = 0;
 
         public Day13()
         {
-            Lines = InputFile.Split("\r\n").ToList();
+            Lines = InputFileAsStringList;
             EarliestTime = int.Parse(Lines[0]);
             Buses = (from l in Lines[1].Split(',').Where(i => !i.Equals("x"))
                     select int.Parse(l)).ToList();

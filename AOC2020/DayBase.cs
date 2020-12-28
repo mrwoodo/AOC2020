@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace AOC2020
 {
@@ -13,6 +15,9 @@ namespace AOC2020
         }
 
         public string InputFile => File.ReadAllText($"Input\\{this.GetType().Name}.txt");
+        public List<string> InputFileAsStringList => InputFile.Split("\r\n").ToList();
+        public List<int> InputFileAsIntList => (from line in InputFileAsStringList select int.Parse(line)).ToList();
+        public List<long> InputFileAsLongList => (from line in InputFileAsStringList select long.Parse(line)).ToList();
 
         public void Run(Func<string> part1, Func<string> part2)
         {

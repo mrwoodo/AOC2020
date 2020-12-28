@@ -9,7 +9,7 @@ namespace AOC2020
     public class Day16 : DayBase, ITwoPartQuestion
     {
         public const int MAX_WIDTH = 1000;
-        public List<string> Lines = new List<string>();
+        public List<string> Lines;
         public StringBuilder GlobalRule = new StringBuilder();
         public Dictionary<string, StringBuilder> Rules = new Dictionary<string, StringBuilder>();
         public int[] MyTicket;
@@ -17,8 +17,7 @@ namespace AOC2020
 
         public Day16()
         {
-            Lines = InputFile.Split("\r\n").ToList();
-
+            Lines = InputFileAsStringList;
             Run(() => Part1(), () => Part2());
         }
 

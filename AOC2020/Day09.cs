@@ -7,13 +7,12 @@ namespace AOC2020
 {
     public class Day09 : DayBase, ITwoPartQuestion
     {
-        public List<long> Lines = new List<long>();
+        public List<long> Lines;
         public long incorrectNum = 0;
 
         public Day09()
         {
-            Lines = (from line in InputFile.Split("\r\n")
-                    select long.Parse(line)).ToList();
+            Lines = InputFileAsLongList;
             Run(() => Part1(), () => Part2());
         }
 

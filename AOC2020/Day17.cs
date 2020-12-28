@@ -7,18 +7,14 @@ namespace AOC2020
 {
     public class Day17 : DayBase, ITwoPartQuestion
     {
-        public List<string> Lines = new List<string>();
-
         public Day17()
         {
-            Lines = InputFile.Split("\r\n").ToList();
-
             Run(() => Part1(), () => Part2());
         }
 
         public string Part1()
         {
-            var world = new World(Lines, fourD: false);
+            var world = new World(InputFileAsStringList, fourD: false);
             world.Play(6);
 
             return $"3D world Active Points: {world.ActivePoints}";
@@ -26,7 +22,7 @@ namespace AOC2020
 
         public string Part2()
         {
-            var world = new World(Lines, fourD: true);
+            var world = new World(InputFileAsStringList, fourD: true);
             world.Play(6);
 
             return $"4D world Active Points: {world.ActivePoints}";

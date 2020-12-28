@@ -7,11 +7,8 @@ namespace AOC2020
 {
     public class Day02 : DayBase, ITwoPartQuestion
     {
-        public List<string> Lines = new List<string>();
-
         public Day02()
         {
-            Lines = InputFile.Split("\r\n").ToList();
             Run(() => Part1(), () => Part2());
         }
 
@@ -19,7 +16,7 @@ namespace AOC2020
         {
             var passwords = new List<PasswordVer1>();
 
-            foreach (var line in Lines)
+            foreach (var line in InputFileAsStringList)
                 passwords.Add(new PasswordVer1(line));
 
             return $"Valid passwords (Part 1) : {passwords.Where(i => i.IsValid).Count()}";
@@ -29,7 +26,7 @@ namespace AOC2020
         {
             var passwords = new List<PasswordVer2>();
 
-            foreach (var line in Lines)
+            foreach (var line in InputFileAsStringList)
                passwords.Add(new PasswordVer2(line));
 
             return $"Valid passwords (Part 2) : {passwords.Where(i => i.IsValid).Count()}";

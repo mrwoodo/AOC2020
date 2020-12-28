@@ -7,13 +7,11 @@ namespace AOC2020
 {
     public class Day10 : DayBase, ITwoPartQuestion
     {
-        public List<int> Devices = new List<int>();
+        public List<int> Devices;
 
         public Day10()
         {
-            Devices = (from line in InputFile.Split("\r\n")
-                       select int.Parse(line)).OrderBy(i => i).ToList();
-
+            Devices = InputFileAsIntList.OrderBy(i => i).ToList();
             Devices.Insert(0, 0);
             Devices.Add(Devices.Last() + 3);
 

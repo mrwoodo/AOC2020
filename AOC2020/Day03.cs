@@ -7,17 +7,14 @@ namespace AOC2020
 {
     public class Day03 : DayBase, ITwoPartQuestion
     {
-        public List<string> Lines = new List<string>();
-
         public Day03()
         {
-            Lines = InputFile.Split("\r\n").ToList();
             Run(() => Part1(), () => Part2());
         }
 
         public string Part1()
         {
-            var map = new Map(Lines);
+            var map = new Map(InputFileAsStringList);
             var sled = new Sled(map, 3, 1);
             var treesHit = sled.SlideDownMap();
 
@@ -26,7 +23,7 @@ namespace AOC2020
 
         public string Part2()
         {
-            var map = new Map(Lines);
+            var map = new Map(InputFileAsStringList);
             var sleds = new Sled[5] {
                 new Sled(map, 1, 1),
                 new Sled(map, 3, 1),

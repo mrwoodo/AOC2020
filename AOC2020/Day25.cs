@@ -11,9 +11,7 @@ namespace AOC2020
 
         public Day25()
         {
-            PublicKeys = (from i in InputFile.Split("\r\n")
-                         select int.Parse(i)).ToList();
-
+            PublicKeys = InputFileAsIntList;
             Run(() => Part1(), () => Part2());
         }
 

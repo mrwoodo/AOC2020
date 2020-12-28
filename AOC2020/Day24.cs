@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 
 namespace AOC2020
 {
@@ -13,7 +14,7 @@ namespace AOC2020
 
         public string Part1()
         {
-            var blackTiles = lobby.FlipTiles(InputFile.Split("\r\n"));
+            var blackTiles = lobby.FlipTiles(InputFileAsStringList);
 
             return $"Black Tiles = {blackTiles}";
         }
@@ -74,7 +75,7 @@ namespace AOC2020
                 }
             }
 
-            public int FlipTiles(string[] Instructions)
+            public int FlipTiles(List<string> Instructions)
             {
                 int blackTiles = 0;
 

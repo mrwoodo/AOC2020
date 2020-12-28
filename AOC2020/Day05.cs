@@ -7,18 +7,16 @@ namespace AOC2020
 {
     public class Day05 : DayBase, ITwoPartQuestion
     {
-        public List<string> Input = new List<string>();
         public SortedSet<int> Tickets = new SortedSet<int>();
 
         public Day05()
         {
-            Input = InputFile.Split("\r\n").ToList();
             Run(() => Part1(), () => Part2());
         }
 
         public string Part1()
         {
-            foreach (var ticket in Input)
+            foreach (var ticket in InputFileAsStringList)
                 Tickets.Add(GetSeatID(
                     rowPartition: ticket.Substring(0, 7),
                     seatPartition: ticket[7..]));

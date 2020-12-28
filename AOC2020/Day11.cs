@@ -7,11 +7,8 @@ namespace AOC2020
 {
     public class Day11 : DayBase, ITwoPartQuestion
     {
-        public List<string> Lines = new List<string>();
-
         public Day11()
         {
-            Lines = InputFile.Split("\r\n").ToList();
             Run(() => Part1(), () => Part2());
         }
 
@@ -27,7 +24,7 @@ namespace AOC2020
 
         private int Run(int mode)
         {
-            var room = new Room(Lines, mode);
+            var room = new Room(InputFileAsStringList, mode);
             var stateChanged = true;
             var occupiedSeats = 0;
 

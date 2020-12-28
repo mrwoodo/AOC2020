@@ -8,12 +8,8 @@ namespace AOC2020
 {
     public class Day14 : DayBase, ITwoPartQuestion
     {
-        public List<string> Lines = new List<string>();
-
         public Day14()
         {
-            Lines = InputFile.Split("\r\n").ToList();
-
             Run(() => Part1(), () => Part2());
         }
 
@@ -22,7 +18,7 @@ namespace AOC2020
             var mask = "";
             var memory = new Dictionary<long, long>();
 
-            foreach (var line in Lines)
+            foreach (var line in InputFileAsStringList)
             {
                 if (line.StartsWith("mask"))
                     mask = line.Replace("mask = ", "");
@@ -60,7 +56,7 @@ namespace AOC2020
             var mask = "";
             var memory = new Dictionary<long, long>();
 
-            foreach (var line in Lines)
+            foreach (var line in InputFileAsStringList)
             {
                 if (line.StartsWith("mask"))
                     mask = line.Replace("mask = ", "");

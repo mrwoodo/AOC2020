@@ -8,12 +8,8 @@ namespace AOC2020
 {
     public class Day18 : DayBase, ITwoPartQuestion
     {
-        public List<string> Lines = new List<string>();
-
         public Day18()
         {
-            Lines = InputFile.Split("\r\n").ToList();
-
             Run(() => Part1(), () => Part2());
         }
 
@@ -22,7 +18,7 @@ namespace AOC2020
             var c = new Calculator();
             long sum = 0;
 
-            foreach (var i in Lines)
+            foreach (var i in InputFileAsStringList)
                 sum += c.Calculate(i);
 
             return $"Sum = {sum}";
@@ -33,7 +29,7 @@ namespace AOC2020
             var c = new Calculator(Advanced: true);
             long sum = 0;
 
-            foreach (var i in Lines)
+            foreach (var i in InputFileAsStringList)
                 sum += c.Calculate(i);
 
             return $"Sum = {sum}";

@@ -18,7 +18,7 @@ namespace AOC2020
         }
         private const int PLAYER_1 = 0;
         private const int PLAYER_2 = 1;
-        private readonly Dictionary<int, HashSet<string>> HandCache = new Dictionary<int, HashSet<string>>();
+        private readonly Dictionary<int, HashSet<string>> Cache = new Dictionary<int, HashSet<string>>();
 
         private (List<int>, List<int>) DefaultPack
         {
@@ -45,6 +45,7 @@ namespace AOC2020
         public string Part1()
         {
             var Cards = DealCards(DefaultPack);
+
             while ((Cards[PLAYER_1].Count > 0) && (Cards[PLAYER_2].Count > 0))
             {
                 var Card1 = Cards[PLAYER_1].Dequeue();
@@ -68,79 +69,58 @@ namespace AOC2020
         public string Part2()
         {
             var Cards = DealCards(DefaultPack);
-            var InfiniteGame = false;
             var Game = GetNewGameID;
-            var Round = 0;
 
-            while ((Cards[PLAYER_1].Count > 0) && (Cards[PLAYER_2].Count > 0) && !InfiniteGame)
-            {
-                RecursiveCombat(Game, Round, ref Cards, out InfiniteGame);
-                Round++;
-            }
+            while ((Cards[PLAYER_1].Count > 0) && (Cards[PLAYER_2].Count > 0))
+                RecursiveCombat(Game, ref Cards, out _);
 
             return ShowWinner(ref Cards);
         }
 
-        private bool RecursiveCombat(int Game, int Round, ref Queue<int>[] Cards, out bool InfiniteGame)
+        private bool RecursiveCombat(int Game, ref Queue<int>[] Cards, out bool InfiniteGame)
         {
-            Round++;
-            Console.WriteLine($"\r\n-- Round {Round} (Game {Game}) --");
-
-            var Hand = GetHand(ref Cards);
-
+            //The cache tracks all the hands that were dealt for games. If we encounter the exact same hand twice
+            //in a given game, that's an infinite loop and we break out of it.
             InfiniteGame = false;
-            if (!HandCache.ContainsKey(Game))
-                HandCache.Add(Game, new HashSet<string>() { Hand });
-            else if (HandCache[Game].Contains(Hand))
+            var Hand = GetHand(ref Cards);
+            if (!Cache.ContainsKey(Game))
+                Cache.Add(Game, new HashSet<string>() { Hand });
+            else if (Cache[Game].Contains(Hand))
             {
-                Console.WriteLine("Infinite game!!");
                 InfiniteGame = true;
-                //return true;
+                return true;
             }
             else
-                HandCache[Game].Add(Hand);
+                Cache[Game].Add(Hand);
 
             var Card1 = Cards[PLAYER_1].Dequeue();
             var Card2 = Cards[PLAYER_2].Dequeue();
 
-            Console.WriteLine($"Player 1 plays: {Card1}");
-            Console.WriteLine($"Player 2 plays: {Card2}");
-
             //Enough cards for a sub game?
             if ((Cards[PLAYER_1].Count >= Card1) && ((Cards[PLAYER_2].Count >= Card2)))
             {
-                var InnerGame = GetNewGameID;
-                var InnerRound = 0;
-                Console.WriteLine($"Playing a sub-game to determine the winner...\r\n\r\n=== Game {InnerGame} ===");
-
                 //Yes, deal the sub game pack
+                var InnerGame = GetNewGameID;
                 var newPack = DealCards((Cards[PLAYER_1].Take(Card1).ToList(), Cards[PLAYER_2].Take(Card2).ToList()));
                 var Player1Winner = false;
+                var Infinite = false;
 
-                while ((newPack[PLAYER_1].Count > 0) && (newPack[PLAYER_2].Count > 0) && !InfiniteGame)
-                {
-                    Player1Winner = RecursiveCombat(InnerGame, InnerRound, ref newPack, out InfiniteGame);
+                while ((newPack[PLAYER_1].Count > 0) && (newPack[PLAYER_2].Count > 0) && !Infinite)
+                    Player1Winner = RecursiveCombat(InnerGame, ref newPack, out Infinite);
 
-                    if (InfiniteGame)
-                        return true;
-                    InnerRound++;
-                }
+                Cache.Remove(InnerGame);
 
                 //Sub game results in the adding of the "triggering round" cards to the winners hand
-                if (Player1Winner || InfiniteGame)
+                if (Player1Winner)
                 {
                     Cards[PLAYER_1].Enqueue(Card1);
                     Cards[PLAYER_1].Enqueue(Card2);
-                    Console.WriteLine($"The winner of game {InnerGame} is player 1!\r\n\r\n...anyway, back to game {Game}.");
-                    HandCache.Remove(InnerGame);
                     return true;
                 }
                 else
                 {
                     Cards[PLAYER_2].Enqueue(Card2);
                     Cards[PLAYER_2].Enqueue(Card1);
-                    Console.WriteLine($"The winner of game {InnerGame} is player 2!\r\n\r\n...anyway, back to game {Game}.");
-                    HandCache.Remove(InnerGame);
                     return false;
                 }
             }
@@ -150,14 +130,12 @@ namespace AOC2020
             {
                 Cards[PLAYER_1].Enqueue(Card1);
                 Cards[PLAYER_1].Enqueue(Card2);
-                Console.WriteLine($"Player 1 wins round {Round} of game {Game}!");
                 return true;
             }
             else
             {
                 Cards[PLAYER_2].Enqueue(Card2);
                 Cards[PLAYER_2].Enqueue(Card1);
-                Console.WriteLine($"Player 2 wins round {Round} of game {Game}!");
                 return false;
             }
         }
@@ -193,10 +171,10 @@ namespace AOC2020
         {
             var sb = new StringBuilder();
             foreach (var p1 in Cards[PLAYER_1].ToList())
-                sb.Append($"{p1}");
-            sb.Append("x");
+                sb.Append($"{p1},");
+            sb.Append("|");
             foreach (var p2 in Cards[PLAYER_2].ToList())
-                sb.Append($"{p2}");
+                sb.Append($"{p2},");
             return sb.ToString();
         }
     }

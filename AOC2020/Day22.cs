@@ -51,16 +51,7 @@ namespace AOC2020
                 var Card1 = Cards[PLAYER_1].Dequeue();
                 var Card2 = Cards[PLAYER_2].Dequeue();
 
-                if (Card1 > Card2)
-                {
-                    Cards[PLAYER_1].Enqueue(Card1);
-                    Cards[PLAYER_1].Enqueue(Card2);
-                }
-                else
-                {
-                    Cards[PLAYER_2].Enqueue(Card2);
-                    Cards[PLAYER_2].Enqueue(Card1);
-                }
+                AddCardsToPlayerPack(Card1 > Card2, ref Cards, Card1, Card2);
             }
 
             return ShowWinner(ref Cards);
@@ -108,36 +99,29 @@ namespace AOC2020
                 while ((newPack[PLAYER_1].Count > 0) && (newPack[PLAYER_2].Count > 0) && !Infinite)
                     Player1Winner = RecursiveCombat(InnerGame, ref newPack, out Infinite);
 
-                Cache.Remove(InnerGame);
+                Cache.Remove(InnerGame); //We're exiting the sub-game, don't need the Cache for it anymroe
 
                 //Sub game results in the adding of the "triggering round" cards to the winners hand
-                if (Player1Winner)
-                {
-                    Cards[PLAYER_1].Enqueue(Card1);
-                    Cards[PLAYER_1].Enqueue(Card2);
-                    return true;
-                }
-                else
-                {
-                    Cards[PLAYER_2].Enqueue(Card2);
-                    Cards[PLAYER_2].Enqueue(Card1);
-                    return false;
-                }
+                return AddCardsToPlayerPack(Player1Winner, ref Cards, Card1, Card2);
             }
 
             //Not a sub game, just use the regular rules
-            if (Card1 > Card2)
+            return AddCardsToPlayerPack(Card1 > Card2, ref Cards, Card1, Card2);
+        }
+
+        private bool AddCardsToPlayerPack(bool DidPlayerOneWin, ref Queue<int>[] Cards, int Card1, int Card2)
+        {
+            if (DidPlayerOneWin)
             {
                 Cards[PLAYER_1].Enqueue(Card1);
                 Cards[PLAYER_1].Enqueue(Card2);
-                return true;
             }
             else
             {
                 Cards[PLAYER_2].Enqueue(Card2);
                 Cards[PLAYER_2].Enqueue(Card1);
-                return false;
             }
+            return DidPlayerOneWin;
         }
 
         private Queue<int>[] DealCards((List<int>, List<int>) Pack)

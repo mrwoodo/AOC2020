@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 
 namespace AOC2020
 {
@@ -189,7 +188,7 @@ namespace AOC2020
             {
                 get
                 {
-                    var  result = 0;
+                    var result = 0;
 
                     if ((E != null) && (E.Black)) result++;
                     if ((SE != null) && (SE.Black)) result++;

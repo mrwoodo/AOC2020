@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace AOC2020
@@ -16,7 +15,7 @@ namespace AOC2020
             Lines = InputFileAsStringList;
             EarliestTime = int.Parse(Lines[0]);
             Buses = (from l in Lines[1].Split(',').Where(i => !i.Equals("x"))
-                    select int.Parse(l)).ToList();
+                     select int.Parse(l)).ToList();
 
             Run(() => Part1(), () => Part2());
         }

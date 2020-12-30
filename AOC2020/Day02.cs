@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace AOC2020
@@ -27,7 +25,7 @@ namespace AOC2020
             var passwords = new List<PasswordVer2>();
 
             foreach (var line in InputFileAsStringList)
-               passwords.Add(new PasswordVer2(line));
+                passwords.Add(new PasswordVer2(line));
 
             return $"Valid passwords (Part 2) : {passwords.Where(i => i.IsValid).Count()}";
         }

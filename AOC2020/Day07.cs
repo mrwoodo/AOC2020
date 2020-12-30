@@ -1,7 +1,5 @@
 ﻿using Rivers;
 using Rivers.Analysis.Traversal;
-using System;
-using System.IO;
 using System.Linq;
 
 namespace AOC2020

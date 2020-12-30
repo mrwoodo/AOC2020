@@ -8,14 +8,14 @@ namespace AOC2020
     {
         static void Main()
         {
-            //var days = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.IsSubclassOf(typeof(DayBase)));
+            var days = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.IsSubclassOf(typeof(DayBase)));
 
-            //foreach (var day in days)
-            //    Activator.CreateInstance(day);
+            foreach (var day in days)
+                Activator.CreateInstance(day);
 
-            _ = new Day22();
+            //_ = new Day22();
 
-            Console.ReadLine();
+            //Console.ReadLine();
         }
     }
 }

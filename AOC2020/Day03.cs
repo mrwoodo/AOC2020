@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.Collections.Generic;
 
 namespace AOC2020
 {
@@ -34,7 +31,7 @@ namespace AOC2020
 
             long result = 1;
             foreach (var sled in sleds)
-                 result *= sled.SlideDownMap();
+                result *= sled.SlideDownMap();
 
             return $"Combination of Trees hit : {result}";
         }

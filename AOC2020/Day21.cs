@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-
-namespace AOC2020
+﻿namespace AOC2020
 {
     public class Day21 : DayBase, ITwoPartQuestion
     {

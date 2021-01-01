@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace AOC2020
 {
     public class Day19 : DayBase, ITwoPartQuestion
     {
-        Dictionary<int, Rule> Rules;
-        List<string> Messages;
-
         public Day19()
         {
             Run(() => Part1(), () => Part2());
@@ -16,72 +12,60 @@ namespace AOC2020
 
         public string Part1()
         {
-            Rules = new Dictionary<int, Rule>();
-            Messages = new List<string>();
+            var Rules = new Dictionary<int, Rule>();
+            var Messages = new List<string>();
+            LoadRules(Rules, Messages);
+            ParseRules(Rules);
 
-            foreach (var l in InputFileAsStringList)
+            var validMessages = (from Message in Messages
+                                 let result = Rules[0].ParseRule(Message, (0, true))
+                                 where (result.Item2) && (result.Item1 == Message.Length)
+                                 select Message).Count();
+
+            return $"Messages passing validation : {validMessages}";
+        }
+
+        private void LoadRules(Dictionary<int, Rule> Rules, List<string> Messages)
+        {
+            foreach (var (l, search) in from l in InputFileAsStringList
+                                        where l.Length > 0
+                                        let search = l.IndexOf(":")
+                                        select (l, search))
             {
-                if (l.Length > 0)
+                if (search > 0)
                 {
-                    var srch = l.IndexOf(":");
-                    if (srch > 0)
-                    {
-                        var key = l.Substring(0, srch);
-                        var val = l.Substring(srch + 2);
-                        Rules.Add(int.Parse(key), new Rule(int.Parse(key), val));
-                    }
-                    else
-                    {
-                        Messages.Add(l);
-                    }
+                    var key = l.Substring(0, search);
+                    var value = l[(search + 2)..];
+                    Rules.Add(int.Parse(key), new Rule(value));
                 }
+                else
+                    Messages.Add(l);
             }
+        }
 
+        private void ParseRules(Dictionary<int, Rule> Rules)
+        {
             foreach (var k in Rules.Keys)
             {
                 var r = Rules[k];
 
-                if (r.CharValue == null)
+                if (r.Char == null)
                 {
                     if (r.RuleString.Contains("|"))
                     {
-                        var or = r.RuleString.Split("|");
-                        var sub = or[0].Split(" ", System.StringSplitOptions.RemoveEmptyEntries);
-
-                        for (int i = 0; i < sub.Length; i++)
-                        {
-                            var lookup = Rules[int.Parse(sub[i])];
-                            r.SubRules.Add(lookup);
-                        }
-                        sub = or[1].Split(" ", System.StringSplitOptions.RemoveEmptyEntries);
-                        for (int i = 0; i < sub.Length; i++)
-                        {
-                            var lookup = Rules[int.Parse(sub[i])];
-                            r.SubRulesAlt.Add(lookup);
-                        }
+                        var parts = r.RuleString.Split("|");
+                        r.SubRules.AddRange(from s in parts[0].Split(" ", System.StringSplitOptions.RemoveEmptyEntries)
+                                            select Rules[int.Parse(s)]);
+                        r.SubRulesAlt.AddRange(from s in parts[1].Split(" ", System.StringSplitOptions.RemoveEmptyEntries)
+                                               select Rules[int.Parse(s)]);
                     }
                     else
                     {
-                        var sub = r.RuleString.Split(" ", System.StringSplitOptions.RemoveEmptyEntries);
-                        for (int i = 0; i < sub.Length; i++)
-                        {
-                            var lookup = Rules[int.Parse(sub[i])];
-                            r.SubRules.Add(lookup);
-                        }
+                        r.SubRules.AddRange(from s in r.RuleString.Split(" ", System.StringSplitOptions.RemoveEmptyEntries)
+                                            select Rules[int.Parse(s)]);
                     }
                 }
             }
-
-            foreach (var m in Messages)
-            {
-                Console.Write($"{m}\t");
-                if (Rules[0].ParseRule(m, 0))
-                    Console.WriteLine("VALID");
-                else
-                    Console.WriteLine();
-            }
-
-            return $"";
         }
 
         public string Part2()
@@ -92,57 +76,62 @@ namespace AOC2020
 
     public class Rule
     {
-        public int ID { get; set; }
-        public string CharValue { get; set; }
+        public string Char { get; set; }
         public string RuleString { get; set; }
         public List<Rule> SubRules { get; set; }
         public List<Rule> SubRulesAlt { get; set; }
 
-        public Rule(int id, string Input)
+        public Rule(string Input)
         {
-            this.ID = id;
             this.RuleString = Input;
             if (Input.Contains("\""))
-                this.CharValue = Input.Replace("\"", "");
+                this.Char = Input.Replace("\"", "");
 
             SubRules = new List<Rule>();
             SubRulesAlt = new List<Rule>();
         }
 
-        public bool ParseRule(string Input, int fromPosition)
+        public (int, bool) ParseRule(string Input, (int, bool) from)
         {
-            Console.WriteLine($"\r\nRule {this.ID} : {this.RuleString}, checking {Input}");
-
-            if (CharValue != null)
+            if (Char != null)
             {
-                Console.WriteLine($"{((Input.Substring(fromPosition, 1) == CharValue) ? "passed!" : "failed!")}");
-                return (Input.Substring(fromPosition, 1) == CharValue);
+                if (Input.Substring(from.Item1, 1) == Char)
+                    return (from.Item1 + 1, true);
+                return (0, false);
             }
 
-            var result = true;
+            var to = from;
+            var passed = true;
             foreach (var subrule in SubRules)
             {
-                result &= subrule.ParseRule(Input, fromPosition);
-                if (result)
-                    fromPosition++;
-                else
+                to = subrule.ParseRule(Input, to);
+                if (!to.Item2)
+                {
+                    passed = false;
                     break;
+                }
             }
 
-            if ((SubRulesAlt.Count == 0) || result)
-                return result;
+            if (passed)
+                return (to.Item1, true);
 
-            result = true;
-            foreach (var subrule in SubRulesAlt)
+            if (SubRulesAlt.Count > 0)
             {
-                result &= subrule.ParseRule(Input, fromPosition);
-                if (result)
-                    fromPosition++;
-                else
-                    break;
+                passed = true;
+                to = from;
+                foreach (var subrule in SubRulesAlt)
+                {
+                    to = subrule.ParseRule(Input, to);
+                    if (!to.Item2)
+                    {
+                        passed = false;
+                        break;
+                    }
+                }
+                if (passed)
+                    return (to.Item1, true);
             }
-
-            return result;
+            return (from.Item1, false);
         }
     }
 }

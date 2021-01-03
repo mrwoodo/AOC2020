@@ -65,23 +65,23 @@ namespace AOC2020
 
                 var ins = GetIntruction(Curr);
 
-                switch (ins.Item1)
+                switch (ins.operation)
                 {
                     case "nop":
                         Curr++;
                         break;
                     case "jmp":
-                        Curr += ins.Item2;
+                        Curr += ins.value;
                         break;
                     case "acc":
-                        Acc += ins.Item2;
+                        Acc += ins.value;
                         Curr++;
                         break;
                 }
             }
         }
 
-        private (string, int) GetIntruction(int lineNum)
+        private (string operation, int value) GetIntruction(int lineNum)
         {
             var line = MemoryStore[lineNum].Split(" ");
 

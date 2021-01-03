@@ -41,14 +41,14 @@ namespace AOC2020
             #    ##    ##    ###
              #  #  #  #  #  #
             */
-            var monster = new List<(int, int)> { (18, 0), (0, 1), (5, 1), (6, 1), (11, 1), (12, 1),
+            var monster = new List<(int x, int y)> { (18, 0), (0, 1), (5, 1), (6, 1), (11, 1), (12, 1),
                                                 (17, 1), (18, 1), (19, 1), (1, 2), (4, 2), (7, 2),
                                                 (10, 2), (13, 2), (16, 2) };
             var image = photo.Generate();
             var monstersFound = 0;
             var counter = 0;
-            var maxY = monster.Max(i => i.Item2);
-            var maxX = monster.Max(i => i.Item1);
+            var maxY = monster.Max(i => i.y);
+            var maxX = monster.Max(i => i.x);
 
             while ((monstersFound == 0) && (counter < 8))
             {
@@ -61,7 +61,7 @@ namespace AOC2020
                         var foundEveryPixel = true;
                         foreach (var m in monster)
                         {
-                            if (image.Pixels[y + m.Item2][x + m.Item1] == '0')
+                            if (image.Pixels[y + m.y][x + m.x] == '0')
                             {
                                 foundEveryPixel = false;
                                 break;

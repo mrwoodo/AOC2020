@@ -8,7 +8,7 @@ namespace AOC2020
         //Dict Key = Number spoken
         //Dict Value = Tuple (1st = Most recent turn spoken, 2nd = 2nd most recent turn spoken)
         //We keep popping turns off the tuple, as we don't care about turns older than 1st/2nd
-        private Dictionary<int, (int?, int?)> Nums = new Dictionary<int, (int?, int?)>();
+        private Dictionary<int, (int? firstRecent, int? secondRecent)> Nums = new Dictionary<int, (int?, int?)>();
         private readonly IEnumerable<int> Input;
 
         public Day15()
@@ -50,21 +50,21 @@ namespace AOC2020
 
             while (turn <= Turns)
             {
-                var timesSpoken = Nums[prevSpoken];
+                var (firstRecent, secondRecent) = Nums[prevSpoken];
 
-                if (timesSpoken.Item2.HasValue)
+                if (secondRecent.HasValue)
                 {
-                    prevSpoken = timesSpoken.Item1.Value - timesSpoken.Item2.Value;
+                    prevSpoken = firstRecent.Value - secondRecent.Value;
 
                     if (Nums.ContainsKey(prevSpoken))
-                        Nums[prevSpoken] = (turn, Nums[prevSpoken].Item1);
+                        Nums[prevSpoken] = (turn, Nums[prevSpoken].firstRecent);
                     else
                         Nums[prevSpoken] = (turn, null);
                 }
                 else
                 {
                     prevSpoken = 0;
-                    Nums[0] = (turn, Nums[0].Item1);
+                    Nums[0] = (turn, Nums[0].firstRecent);
                 }
 
                 turn++;

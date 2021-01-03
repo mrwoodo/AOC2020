@@ -20,18 +20,18 @@ namespace AOC2020
         private const int PLAYER_2 = 1;
         private readonly Dictionary<int, HashSet<string>> Cache = new Dictionary<int, HashSet<string>>();
 
-        private (List<int>, List<int>) DefaultPack
+        private (List<int> Player1, List<int> Player2) DefaultPack
         {
             get
             {
-                var Pack = (new List<int>(), new List<int>());
+                (List<int> Player1, List<int> Player2) Pack = (new List<int>(), new List<int>());
                 var Rows = InputFile.Replace("Player 1:", "").Replace("Player 2:", "").Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
 
                 for (int i = 0; i < Rows.Length; i++)
                     if (i < Rows.Count() / 2)
-                        Pack.Item1.Add(int.Parse(Rows[i]));
+                        Pack.Player1.Add(int.Parse(Rows[i]));
                     else
-                        Pack.Item2.Add(int.Parse(Rows[i]));
+                        Pack.Player2.Add(int.Parse(Rows[i]));
 
                 return Pack;
             }
@@ -124,17 +124,17 @@ namespace AOC2020
             return DidPlayerOneWin;
         }
 
-        private Queue<int>[] DealCards((List<int>, List<int>) Pack)
+        private Queue<int>[] DealCards((List<int> Player1, List<int> Player2) Pack)
         {
             var Result = new Queue<int>[2];
             Result[PLAYER_1] = new Queue<int>();
             Result[PLAYER_2] = new Queue<int>();
 
-            for (int i = 0; i < Pack.Item1.Count; i++)
-                Result[PLAYER_1].Enqueue(Pack.Item1[i]);
+            for (int i = 0; i < Pack.Player1.Count; i++)
+                Result[PLAYER_1].Enqueue(Pack.Player1[i]);
 
-            for (int i = 0; i < Pack.Item2.Count; i++)
-                Result[PLAYER_2].Enqueue(Pack.Item2[i]);
+            for (int i = 0; i < Pack.Player2.Count; i++)
+                Result[PLAYER_2].Enqueue(Pack.Player2[i]);
 
             return Result;
         }

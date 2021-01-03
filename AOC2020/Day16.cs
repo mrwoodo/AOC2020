@@ -89,14 +89,14 @@ namespace AOC2020
             {
                 var r1 = GetRange(range);
 
-                for (int i = r1.Item1; i <= r1.Item2; i++)
+                for (int i = r1.start; i <= r1.end; i++)
                     sb[i] = '1';
             }
 
             return sb;
         }
 
-        private (int, int) GetRange(string n)
+        private (int start, int end) GetRange(string n)
         {
             var s = n.Split('-');
             return (int.Parse(s[0]), int.Parse(s[1]));

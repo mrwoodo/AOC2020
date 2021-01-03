@@ -5,6 +5,9 @@ namespace AOC2020
 {
     public class Day19 : DayBase, ITwoPartQuestion
     {
+        public Dictionary<int, Rule> Rules = new Dictionary<int, Rule>();
+        public List<string> Messages = new List<string>();
+
         public Day19()
         {
             Run(() => Part1(), () => Part2());
@@ -12,22 +15,30 @@ namespace AOC2020
 
         public string Part1()
         {
-            var Rules = new Dictionary<int, Rule>();
-            var Messages = new List<string>();
-            LoadRules(Rules, Messages);
-            ParseRules(Rules);
+            LoadRules(InputFileAsStringList);
+            ParseRules();
 
-            var validMessages = (from Message in Messages
-                                 let result = Rules[0].ParseRule(Message, (0, true))
-                                 where (result.Item2) && (result.Item1 == Message.Length)
-                                 select Message).Count();
-
-            return $"Messages passing validation : {validMessages}";
+            return ValidateMessges();
         }
 
-        private void LoadRules(Dictionary<int, Rule> Rules, List<string> Messages)
+        public string Part2()
         {
-            foreach (var (l, search) in from l in InputFileAsStringList
+            var source = InputFile;
+            source = source.Replace("8: 42", "8: 42 | 42 8");
+            source = source.Replace("11: 42 31", "11: 42 31 | 42 11 31");
+
+            LoadRules(source.Split("\r\n").ToList());
+            ParseRules();
+
+            return ValidateMessges();
+        }
+
+        private void LoadRules(List<string> source)
+        {
+            Rules.Clear();
+            Messages.Clear();
+
+            foreach (var (l, search) in from l in source
                                         where l.Length > 0
                                         let search = l.IndexOf(":")
                                         select (l, search))
@@ -43,7 +54,7 @@ namespace AOC2020
             }
         }
 
-        private void ParseRules(Dictionary<int, Rule> Rules)
+        private void ParseRules()
         {
             foreach (var k in Rules.Keys)
             {
@@ -68,9 +79,14 @@ namespace AOC2020
             }
         }
 
-        public string Part2()
+        private string ValidateMessges()
         {
-            return $"";
+            var validMessages = (from Message in Messages
+                                 let result = Rules[0].ParseRule(Message, (0, true))
+                                 where (result.success) && (result.charIdx == Message.Length)
+                                 select Message).Count();
+
+            return $"Messages passing validation : {validMessages}";
         }
     }
 
@@ -91,12 +107,14 @@ namespace AOC2020
             SubRulesAlt = new List<Rule>();
         }
 
-        public (int, bool) ParseRule(string Input, (int, bool) from)
+        public (int charIdx, bool success) ParseRule(string Input, (int charIdx, bool success) from)
         {
             if (Char != null)
             {
-                if (Input.Substring(from.Item1, 1) == Char)
-                    return (from.Item1 + 1, true);
+                if (from.charIdx < Input.Length)
+                    if (Input.Substring(from.charIdx, 1) == Char)
+                        return (from.charIdx + 1, true);
+
                 return (0, false);
             }
 
@@ -105,33 +123,29 @@ namespace AOC2020
             foreach (var subrule in SubRules)
             {
                 to = subrule.ParseRule(Input, to);
-                if (!to.Item2)
+                if (!to.success)
                 {
                     passed = false;
                     break;
                 }
             }
 
-            if (passed)
-                return (to.Item1, true);
-
-            if (SubRulesAlt.Count > 0)
+            if ((SubRulesAlt.Count > 0) && !passed)
             {
                 passed = true;
                 to = from;
                 foreach (var subrule in SubRulesAlt)
                 {
                     to = subrule.ParseRule(Input, to);
-                    if (!to.Item2)
+                    if (!to.success)
                     {
                         passed = false;
                         break;
                     }
                 }
-                if (passed)
-                    return (to.Item1, true);
             }
-            return (from.Item1, false);
+
+            return (passed ? to.charIdx : from.charIdx, passed);
         }
     }
 }
